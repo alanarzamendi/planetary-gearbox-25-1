@@ -1,0 +1,39 @@
+# SOLIDWORKS lock and temporary files
+~$*
+*.swp
+
+# SOLIDWORKS Simulation result databases and solver logs
+# (large and regenerable: open the study and run it again)
+*.CWR
+*.BD2
+*.BDF
+*.gsz
+*.DSP
+*.EFF
+*.ELF
+*.GEN
+*.IDA
+*.LCD
+*.LDS
+*.MAS
+*.OUT
+*.STE
+*.STG
+*.LOG
+*BenchMark-Solver.txt
+PerformanceLog.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Tools and temporary output
+node_modules/
+graphify-out/
+Report/_print/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

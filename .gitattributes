@@ -1,0 +1,13 @@
+* text=auto
+
+# CAD, documents and media are binary
+*.SLDPRT binary
+*.SLDASM binary
+*.SLDDRW binary
+*.sldprt binary
+*.sldasm binary
+*.slddrw binary
+*.xlsx binary
+*.pdf binary
+*.png binary
+*.mp4 binary

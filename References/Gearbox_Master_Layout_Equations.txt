@@ -1,0 +1,31 @@
+"Z_Sun" = 18
+"Z_Planet" = 27
+"Z_Ring" = 72
+"Number_of_Planets" = 3
+
+"Module" = 1.5mm
+"Pressure_Angle" = 20deg
+
+"Sun_PD" = "Module" * "Z_Sun"
+"Planet_PD" = "Module" * "Z_Planet"
+"Ring_PD" = "Module" * "Z_Ring"
+
+"Planet_Center_Radius" = ("Sun_PD" + "Planet_PD") / 2
+"Planet_Center_PCD" = 2 * "Planet_Center_Radius"
+
+"Stage_1_Ratio" = 1 + "Z_Ring" / "Z_Sun"
+"Stage_2_Ratio" = 1 + "Z_Ring" / "Z_Sun"
+"Total_Ratio" = "Stage_1_Ratio" * "Stage_2_Ratio"
+
+"Stage_1_Face_Width" = 15mm
+"Stage_2_Face_Width" = 15mm
+"Interstage_Clearance" = 12mm
+
+"Stage_Center_Distance" = ("Stage_1_Face_Width" / 2) + "Interstage_Clearance" + ("Stage_2_Face_Width" / 2)
+
+"Sun_Outside_Diameter" = "Module" * ("Z_Sun" + 2)
+"Sun_Root_Diameter" = "Module" * ("Z_Sun" - 2.5)
+"Sun_Tooth_Angle" = 360deg / "Z_Sun"
+
+"Input_Shaft_Diameter" = 12mm
+"D1@PL_Stage_2_Center" = "Stage_Center_Distance"

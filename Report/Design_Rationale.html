@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Rationale · 25:1 Planetary Gearbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+/* Layout: one reading column like a bound engineering notebook; each section is a numbered sheet
+   with its equations, inputs and verdict. Graph-paper ground, drafting-blue ink. */
+:root {
+  --paper: #f6f8fb;
+  --sheet: #ffffff;
+  --ink: #18212f;
+  --muted: #5b6678;
+  --rule: #d9e0ea;
+  --grid: #e9eef5;
+  --accent: #1d4ed8;
+  --decision: #8a5a00;
+  --decision-soft: #fbf1dc;
+  --ok: #17803d;
+  --ok-soft: #e3f4e9;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f141c; --sheet: #151c27; --ink: #e4e9f1; --muted: #9aa6b8; --rule: #2a3444;
+    --grid: #182130; --accent: #7fa6ff; --decision: #f0b54a; --decision-soft: #2c2412;
+    --ok: #5ccf86; --ok-soft: #143222; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f141c; --sheet: #151c27; --ink: #e4e9f1; --muted: #9aa6b8; --rule: #2a3444;
+  --grid: #182130; --accent: #7fa6ff; --decision: #f0b54a; --decision-soft: #2c2412;
+  --ok: #5ccf86; --ok-soft: #143222; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 40px 20px 80px; display: grid; gap: 28px; }
+header.title { display: grid; gap: 10px; padding-bottom: 8px; }
+.kicker { font-family: var(--font-mono); font-size: 13px; color: var(--accent); letter-spacing: .04em; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 700; }
+h2 { font-size: 24px; font-weight: 600; display: flex; gap: 12px; align-items: baseline; }
+h2 .num { font-family: var(--font-mono); font-size: 15px; color: var(--accent); font-weight: 500; }
+h3 { font-size: 18px; font-weight: 600; margin-top: 6px; }
+p { margin: 0; max-width: 68ch; }
+.lede { color: var(--muted); max-width: 68ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+nav.toc a { text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+.sheet {
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 26px clamp(18px, 4vw, 34px); display: grid; gap: 16px;
+}
+.eq { overflow-x: auto; padding: 4px 0; }
+.eq mjx-container[display="true"] { margin: .4em 0 !important; }
+.note { font-size: 14px; color: var(--muted); max-width: 68ch; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--muted); }
+td.n { font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+th.n { text-align: right; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.gov { background: var(--decision-soft); color: var(--decision); }
+.decision {
+  border-left: 3px solid var(--decision); background: var(--decision-soft);
+  padding: 12px 16px; border-radius: 0 6px 6px 0; display: grid; gap: 4px;
+}
+.decision .id { font-family: var(--font-mono); font-size: 13px; color: var(--decision); }
+.decision p { font-size: 15px; }
+.given { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.given div { border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; display: grid; gap: 2px; }
+.given .k { font-size: 13px; color: var(--muted); }
+.given .v { font-family: var(--font-mono); font-size: 16px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { font-family: var(--font-mono); font-size: 12px; fill: var(--ink); }
+.chart .lbl { font-family: var(--font-body); font-size: 13px; }
+.chart .muted { fill: var(--muted); }
+ul.plain { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 68ch; }
+footer { font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 480px) { body { font-size: 15px; } .sheet { padding: 20px 16px; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="title">
+  <div class="kicker">DESIGN NOTEBOOK · TWO-STAGE PLANETARY GEARBOX</div>
+  <h1>Design rationale of the 25:1 planetary gearbox</h1>
+  <p class="lede">The mathematics, standards and decisions behind the design: kinematics, load cases, gear capacity to ISO 6336, materials, bearings, shafts, fits and efficiency. Reasoning only; part dimensions live in the drawings.</p>
+  <div class="meta"><span>Updated: 5 Nov 2026</span><span>Plan steps covered: 2 to 9 (FEA, DFMA)</span><span>Reproducible calculation: Calculations/02_design_calculations.py</span></div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#kinematics">01 Kinematics</a><a href="#loads">02 Torque basis</a><a href="#geometry">03 Gear geometry</a>
+    <a href="#forces">04 Tooth forces</a><a href="#contact">05 Contact</a><a href="#bending">06 Bending</a>
+    <a href="#materials">07 Materials</a><a href="#planet-bearing">08 Planet bearing</a><a href="#rating">09 Rating</a>
+    <a href="#output-bearings">10 Output bearings</a><a href="#output-shaft">11 Output shaft</a><a href="#input">12 Input</a>
+    <a href="#fits">13 Fits</a><a href="#interstage">14 Interstage</a><a href="#carriers">15 Carriers</a><a href="#planet-support">16 Planet support</a><a href="#housing">17 Housing</a><a href="#tolerancing">18 Backlash and tolerancing</a><a href="#fea">19 FEA</a><a href="#dfma">20 DFMA</a><a href="#efficiency">21 Efficiency</a><a href="#standards">22 Standards</a><a href="#assumptions">23 Assumptions</a>
+  </nav>
+</header>
+
+<section class="sheet" id="kinematics">
+  <h2><span class="num">01</span>Kinematics and assembly conditions</h2>
+  <p>Architecture: fixed ring, sun input and carrier output in both stages, three planets per stage. The Willis equation relates the speeds of the three members as seen from the carrier:</p>
+  <div class="eq">\[ \frac{\omega_s-\omega_c}{\omega_r-\omega_c} = -\frac{z_r}{z_s} \quad\xrightarrow{\;\omega_r=0\;}\quad i=\frac{\omega_s}{\omega_c}=1+\frac{z_r}{z_s}=1+\frac{72}{18}=5 \]</div>
+  <div class="eq">\[ i_{tot}=i_1\, i_2 = 5\cdot 5 = 25 \qquad n_2=\frac{3000}{25}=120\ \text{rpm} \]</div>
+  <p>Planet speed, absolute and relative to the carrier. The relative speed is what the teeth and the planet bearing see:</p>
+  <div class="eq">\[ \omega_p = \omega_c\left(1-\frac{z_r}{z_p}\right)=-\tfrac{5}{3}\,\omega_c \qquad n_{p,rel}=(n_s-n_c)\,\frac{z_s}{z_p} \]</div>
+  <h3>Geometric conditions (18/27/72, N = 3)</h3>
+  <div class="tbl"><table>
+    <tr><th>Condition</th><th>Equation</th><th class="n">Value</th><th>Result</th></tr>
+    <tr><td>Coaxiality</td><td>\(z_r = z_s + 2z_p\)</td><td class="n">72 = 18 + 54</td><td><span class="pill ok">pass</span></td></tr>
+    <tr><td>Equal-spacing assembly</td><td>\((z_s+z_r)/N \in \mathbb{Z}\)</td><td class="n">90 / 3 = 30</td><td><span class="pill ok">pass</span></td></tr>
+    <tr><td>Adjacency (planets clear each other)</td><td>\(2a\sin(\pi/N) &gt; d_{a,p}\)</td><td class="n">58.46 &gt; 43.5 mm</td><td><span class="pill ok">15 mm clearance</span></td></tr>
+    <tr><td>No undercut with x = 0</td><td>\(z_{min}=2/\sin^2\alpha\)</td><td class="n">17.1 &lt; 18</td><td><span class="pill ok">pass</span></td></tr>
+  </table></div>
+  <h3>Tooth phasing in the CAD assembly</h3>
+  <p>Interference detection on all ten gears was run at the assembled pose and again after turning the input 7.3°, which is not a multiple of any tooth pitch. Every mesh engages. The largest overlap is 0.003 cm³, on the stage 1 ring and planet 1. That is a sliver of about 0.2 mm² across the 15 mm face width, or a few hundredths of a millimetre on the flank. A planet out of phase by half a pitch would overlap by about 0.045 cm³ per tooth. The overlaps come from the nominal profiles, which are modelled with zero backlash. The tooth thinning for backlash set in step 8 must be larger than this, on the stage 1 ring mesh in particular.</p>
+  <div class="tbl"><table>
+    <tr><th>Speeds at 3000 rpm</th><th class="n">\(n_s\)</th><th class="n">\(n_c\)</th><th class="n">\(n_s-n_c\)</th><th class="n">\(n_{p,rel}\)</th></tr>
+    <tr><td>Stage 1</td><td class="n">3000</td><td class="n">600</td><td class="n">2400</td><td class="n">1600</td></tr>
+    <tr><td>Stage 2</td><td class="n">600</td><td class="n">120</td><td class="n">480</td><td class="n">320</td></tr>
+  </table></div>
+</section>
+
+<section class="sheet" id="loads">
+  <h2><span class="num">02</span>Torque basis and load cases</h2>
+  <p>The design torque comes from the selected motor, not from an assumed number. Strength checks take \(\eta = 1\): all motor torque reaches every gear, which is the upper bound.</p>
+  <div class="given">
+    <div><span class="k">Motor</span><span class="v">Yaskawa SGM7J-08A</span></div>
+    <div><span class="k">Rated torque \(T_N\)</span><span class="v">2.39 N·m</span></div>
+    <div><span class="k">Peak torque \(T_{max}\)</span><span class="v">8.36 N·m</span></div>
+    <div><span class="k">Rated / max speed</span><span class="v">3000 / 6000 rpm</span></div>
+  </div>
+  <div class="eq">\[ T_{2N}=i\,T_N=25\cdot 2.39=59.8\ \text{N·m} \qquad T_{2B}=i\,T_{max}=25\cdot 8.36=209\ \text{N·m} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Case</th><th>Input torque</th><th>Factors</th><th>Cycles</th><th>Used for</th></tr>
+    <tr><td>Fatigue</td><td class="n">2.39 N·m</td><td>\(K_A=1.25\)</td><td>10 000 h at 3000 rpm</td><td>pitting, bending, L10 life</td></tr>
+    <tr><td>Static / peak</td><td class="n">8.36 N·m</td><td>\(K_A=1.0\)</td><td>few cycles (static \(Z_{NT}, Y_{NT}\))</td><td>overload, bearing \(S_0\)</td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>Minimum safety factor</th><th class="n">Value</th><th>Reason</th></tr>
+    <tr><td>Tooth bending \(S_{F,min}\)</td><td class="n">1.5</td><td>a broken tooth is catastrophic (R-016)</td></tr>
+    <tr><td>Contact \(S_{H,min}\)</td><td class="n">1.2</td><td>pitting is progressive and detectable</td></tr>
+    <tr><td>Bearing static \(S_0\)</td><td class="n">2.0</td><td>starts and stops with shock</td></tr>
+    <tr><td>Shaft fatigue (simplified method)</td><td class="n">2.0</td><td>margin for a method simpler than DIN 743</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-005 · Torque basis</span><p>Sizing uses the SGM7J-08A (2.39 / 8.36 N·m). It replaces the provisional 4 N·m in the requirements sheet and the 120 N·m overload, which had no physical origin. The motor's real peak gives 209 N·m, more demanding than those 120.</p></div>
+  <div class="decision"><span class="id">D-006 · Application factor</span><p>\(K_A = 1.25\): servo motor (uniform driver) with a driven machine of moderate shocks, from the guidance table of ISO 6336-6. The 10 000 h life is taken entirely at rated torque and speed, a harsher profile than a real servo duty cycle.</p></div>
+  <p class="note">Confirmed for the 200 V SGM7J-08A: 2.39 N·m rated, 8.36 N·m instantaneous peak, 3000/6000 rpm, 80 mm flange, Ø19 shaft (Yaskawa Σ-7 transition guide and distributor datasheets). The motor's own bearings allow 392 N radial and 147 N axial on its shaft, a limit the coupling must respect (section 12).</p>
+</section>
+
+<section class="sheet" id="geometry">
+  <h2><span class="num">03</span>Gear geometry</h2>
+  <p>Module \(m = 1.5\) mm, \(\alpha = 20^\circ\), spur teeth without profile shift (\(x=0\)), ISO 53 profile A basic rack (\(h_{aP}=1.0m,\ h_{fP}=1.25m,\ \rho_{fP}=0.38m\)), face width \(b = 15\) mm.</p>
+  <div class="eq">\[ d=m\,z \qquad d_b=d\cos\alpha \qquad d_a=d+2m \qquad d_f=d-2.5m \qquad a=\tfrac{1}{2}(d_s+d_p)=33.75\ \text{mm} \]</div>
+  <p>Transverse contact ratio (external sun–planet; in the internal mesh the ring tip radius is subtracted):</p>
+  <div class="eq">\[ \varepsilon_\alpha=\frac{\sqrt{r_{a1}^2-r_{b1}^2}+\sqrt{r_{a2}^2-r_{b2}^2}-a\sin\alpha}{\pi m\cos\alpha} \qquad \varepsilon_{\alpha,int}=\frac{\sqrt{r_{a2}^2-r_{b2}^2}-\sqrt{r_{a3}^2-r_{b3}^2}+a\sin\alpha}{\pi m\cos\alpha} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Mesh</th><th class="n">\(\varepsilon_\alpha\)</th><th>Comment</th></tr>
+    <tr><td>Sun–planet (external)</td><td class="n">1.580</td><td>&gt; 1.4: continuous contact with margin</td></tr>
+    <tr><td>Planet–ring (internal)</td><td class="n">1.944</td><td>the internal mesh wraps the tooth: more pairs in contact</td></tr>
+  </table></div>
+  <h3>Rim thickness</h3>
+  <p>ISO 6336-3 applies no rim penalty when \(s_R/h \ge 1.2\) (\(Y_B = 1\)), with tooth depth \(h = 2.25m = 3.375\) mm.</p>
+  <div class="eq">\[ \text{ring, at a tie-bolt hole: } s_R=\frac{128-6.6-111.75}{2}=4.83\ \text{mm}\ \Rightarrow\ \frac{s_R}{h}=1.43 \qquad \text{planet (}\varnothing18\text{ bore): } s_R=\frac{36.75-18}{2}=9.38\ \text{mm}\ \Rightarrow\ \frac{s_R}{h}=2.78 \]</div>
+  <p class="note">The ring outside diameter is Ø140 since step 6 (section 17). Between the holes the rim is 14.1 mm; the thinnest section is under a Ø6.6 tie-bolt hole on the Ø128 circle.</p>
+</section>
+
+<section class="sheet" id="forces">
+  <h2><span class="num">04</span>Tooth forces</h2>
+  <p>Sun torque is shared by three planets. Tolerances make the sharing uneven, which \(K_\gamma\) accounts for:</p>
+  <div class="eq">\[ F_t=\frac{2000\,T_s}{d_s\,N}\,K_\gamma \qquad K_\gamma=1.16\ \ (\text{3 planets, no floating member; AGMA 6123}) \]</div>
+  <p>On the planet, the tangential forces from the sun and from the ring act in the same direction and the radial ones cancel, so the planet pin carries:</p>
+  <div class="eq">\[ F_{r,pin}=2F_t \]</div>
+  <div class="tbl"><table>
+    <tr><th>Case</th><th class="n">\(T_s\) [N·m]</th><th class="n">\(F_t\) [N]</th><th class="n">\(F_{r,pin}\) [N]</th></tr>
+    <tr><td>Stage 1, rated</td><td class="n">2.39</td><td class="n">68</td><td class="n">137</td></tr>
+    <tr><td>Stage 2, rated</td><td class="n">11.95</td><td class="n">342</td><td class="n">685</td></tr>
+    <tr><td>Stage 2, peak</td><td class="n">41.8</td><td class="n">1197</td><td class="n">2394</td></tr>
+  </table></div>
+</section>
+
+<section class="sheet" id="contact">
+  <h2><span class="num">05</span>Contact stress (ISO 6336-2)</h2>
+  <div class="eq">\[ \sigma_H = Z_H Z_E Z_\varepsilon \sqrt{\frac{F_t}{d_1 b}\cdot\frac{u\pm1}{u}}\;\sqrt{K_A K_v K_{H\beta} K_{H\alpha}} \qquad (+\ \text{external},\ -\ \text{internal}) \]</div>
+  <div class="eq">\[ Z_H=\sqrt{\frac{2\cos\alpha}{\cos^2\alpha\,\sin\alpha}}=2.495 \qquad Z_E=189.8\sqrt{\text{MPa}} \qquad Z_\varepsilon=\sqrt{\frac{4-\varepsilon_\alpha}{3}} \]</div>
+  <div class="eq">\[ K_v=1+\left(\frac{K_1}{K_A F_t/b}+K_2\right)\frac{z_1 v}{100}\sqrt{\frac{u^2}{1+u^2}} \qquad K_1=14.9\ (\text{ISO 1328 grade 6}),\ K_2=0.0193 \]</div>
+  <div class="eq">\[ \sigma_{HP}=\frac{\sigma_{H,lim}\,Z_{NT}\,Z_L Z_v Z_R}{S_{H,min}} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Factor</th><th class="n">Stage 1</th><th class="n">Stage 2</th><th>Source</th></tr>
+    <tr><td>\(v\) relative to the carrier</td><td class="n">3.39 m/s</td><td class="n">0.68 m/s</td><td>\(\pi d_s (n_s-n_c)/60\,000\)</td></tr>
+    <tr><td>\(K_v\)</td><td class="n">1.086</td><td class="n">1.017</td><td>method C</td></tr>
+    <tr><td>\(K_{H\beta}\)</td><td class="n">1.15</td><td class="n">1.15</td><td>assumed: pins supported in both plates, \(b/d_1=0.56\); rechecked by method C in section 16</td></tr>
+    <tr><td>\(Z_\varepsilon\) sun–planet / planet–ring</td><td class="n" colspan="2">0.898 / 0.828</td><td>from \(\varepsilon_\alpha\)</td></tr>
+    <tr><td>Sun load cycles \(N_L\)</td><td class="n">4.3·10⁹</td><td class="n">8.6·10⁸</td><td>\(60\,L_h\,(n_s-n_c)\,N\)</td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>Result (fatigue, rated)</th><th class="n">\(\sigma_H\) [MPa]</th><th class="n">\(S_H\)</th><th></th></tr>
+    <tr><td>Stage 1 · sun–planet</td><td class="n">282</td><td class="n">4.61</td><td><span class="pill ok">≥ 1.2</span></td></tr>
+    <tr><td>Stage 1 · planet–ring</td><td class="n">130</td><td class="n">5.26</td><td><span class="pill ok">≥ 1.2</span></td></tr>
+    <tr><td>Stage 2 · sun–planet</td><td class="n">610</td><td class="n">2.18</td><td><span class="pill gov">critical gear flank</span></td></tr>
+    <tr><td>Stage 2 · planet–ring</td><td class="n">281</td><td class="n">2.42</td><td><span class="pill ok">≥ 1.2</span></td></tr>
+    <tr><td>Stage 2 · sun–planet, peak (static)</td><td class="n">1021</td><td class="n">2.28</td><td><span class="pill ok">≥ 1.0</span></td></tr>
+  </table></div>
+  <p class="note">The ring is rated with its own material (42CrMo4 quenched and tempered) and its own cycles, \(60\,L_h\,n_c\,N\). Lubrication: grease with ISO VG 220 base oil; ground flanks (\(Z_R \approx 1\)).</p>
+</section>
+
+<section class="sheet" id="bending">
+  <h2><span class="num">06</span>Tooth-root stress (ISO 6336-3, method B)</h2>
+  <div class="eq">\[ \sigma_F=\frac{F_t}{b\,m}\,Y_F\,Y_S\,Y_\beta\,Y_B\;K_A K_v K_{F\beta} K_{F\alpha} \qquad K_{F\beta}=K_{H\beta}^{\,N_F},\ \ N_F=\frac{(b/h)^2}{1+b/h+(b/h)^2}=0.78 \]</div>
+  <p>\(Y_F\) is evaluated with the load at the outer point of single-pair contact, on the critical section at the 30° tangent to the root fillet:</p>
+  <div class="eq">\[ Y_F=\frac{6\,\dfrac{h_{Fe}}{m}\cos\alpha_{Fen}}{\left(\dfrac{s_{Fn}}{m}\right)^2\cos\alpha_n} \qquad Y_S=(1.2+0.13L)\,q_s^{\,1/(1.21+2.3/L)},\quad L=\frac{s_{Fn}}{h_{Fe}},\ q_s=\frac{s_{Fn}}{2\rho_F} \]</div>
+  <div class="eq">\[ \sigma_{FP}=\frac{\sigma_{F,lim}\,Y_{ST}\,Y_{NT}\,Y_M}{S_{F,min}} \qquad Y_{ST}=2 \qquad Y_M=0.7\ \text{for the planet} \]</div>
+  <p>The planet is an idler: each tooth is bent one way when it meshes with the sun and the other way with the ring. Reversed loading cuts fatigue strength to 70 % (\(Y_M = 0.7\)) and doubles the bending cycles.</p>
+  <div class="tbl"><table>
+    <tr><th>Gear</th><th class="n">\(Y_F\)</th><th class="n">\(Y_S\)</th><th class="n">\(\sigma_F\) rated S2 [MPa]</th><th class="n">\(S_F\) rated S2</th><th class="n">\(S_F\) peak S2</th></tr>
+    <tr><td>Sun, z = 18</td><td class="n">1.737</td><td class="n">1.760</td><td class="n">66</td><td class="n">13.5</td><td class="n">13.5</td></tr>
+    <tr><td>Planet, z = 27</td><td class="n">1.554</td><td class="n">1.858</td><td class="n">62</td><td class="n">10.2</td><td class="n">10.0</td></tr>
+    <tr><td>Ring, z = −72 (rack, conservative bound)</td><td class="n">0.894</td><td class="n">2.710</td><td class="n">52</td><td class="n">11.0</td><td class="n">10.7</td></tr>
+  </table></div>
+  <p>Bending does not limit the design: module 1.5 has a margin of ten or more. The module is set by space: the planet must hold an Ø18 bearing with a rim of \(s_R/h \ge 1.2\). With \(m = 1\) the planet rim would drop to 3.25 mm (\(s_R/h = 1.44\)) and the sun pitch diameter to 18 mm.</p>
+</section>
+
+<section class="sheet" id="materials">
+  <h2><span class="num">07</span>Materials and heat treatment</h2>
+  <p>Limit values to ISO 6336-5, quality MQ. For through-hardened steel the hardness lines apply:</p>
+  <div class="eq">\[ \sigma_{H,lim}=1.313\,HB+373 \qquad \sigma_{F,lim}=0.425\,HB+187 \qquad (HB = 300 \Rightarrow 767\ \text{and}\ 315\ \text{MPa}) \]</div>
+  <div class="tbl"><table>
+    <tr><th>Material for the stage 2 sun</th><th class="n">\(\sigma_{H,lim}\)</th><th class="n">\(\sigma_{F,lim}\)</th><th class="n">\(S_H\)</th><th></th></tr>
+    <tr><td>42CrMo4 quenched and tempered, ~300 HB</td><td class="n">767</td><td class="n">315</td><td class="n">1.07</td><td><span class="pill gov">&lt; 1.2, rejected</span></td></tr>
+    <tr><td>18CrNiMo7-6 case-hardened, 58–62 HRC</td><td class="n">1500</td><td class="n">500</td><td class="n">2.18</td><td><span class="pill ok">selected</span></td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-007 · Case-hardened suns and planets</span><p>18CrNiMo7-6, carburised and hardened to 58–62 HRC, ground after heat treatment. Through-hardened steel gives \(S_H = 1.07\) on the stage 2 sun. The same design is repeated in stage 1, so every external gear shares one material and one process.</p></div>
+  <div class="decision"><span class="id">D-008 · Through-hardened ring, not nitrided</span><p>42CrMo4 quenched and tempered to ~300 HB: \(S_H = 2.42\) in stage 2. The internal contact is concave–convex and its pressure is less than half of the sun's. The teeth are cut after tempering, so there is no heat-treatment distortion; nitriding would add cost for no gain.</p></div>
+  <div class="decision"><span class="id">D-009 · Planet pin as the raceway</span><p>100Cr6 hardened to 60 HRC and ground: a drawn-cup needle bearing has no inner ring, so the pin is the raceway. Its catalogue rating requires at least 58 HRC.</p></div>
+  <div class="decision"><span class="id">D-019 · Output shaft material</span><p>42CrMo4 +QT (EN 10083-3, 16 &lt; d ≤ 40 mm: \(R_m \approx 1000\) MPa, \(R_e \ge 750\) MPa). Same steel family as the ring, tough enough for the keyless clamping hub and the bearing seats.</p></div>
+</section>
+
+<section class="sheet" id="planet-bearing">
+  <h2><span class="num">08</span>Planet bearing and planet pin</h2>
+  <p>HK1212 drawn-cup needle roller bearing (12 × 18 × 12 mm). The lowest rating among manufacturers is used: \(C_r = 6.27\) kN and \(C_{0r} = 7.3\) kN. Basic rating life to ISO 281, with the 10/3 exponent for roller bearings:</p>
+  <div class="eq">\[ L_{10}=\left(\frac{C_r}{P}\right)^{10/3}\ [10^6\ \text{rev}] \qquad L_{10h}=\frac{10^6\,L_{10}}{60\,n_{p,rel}} \qquad P=K_A\,F_{r,pin} \qquad S_0=\frac{C_{0r}}{F_{r,pin,max}} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Stage</th><th class="n">\(P\) [N]</th><th class="n">\(n_{p,rel}\) [rpm]</th><th class="n">\(L_{10h}\) [h]</th><th class="n">\(S_0\) (peak)</th><th></th></tr>
+    <tr><td>1</td><td class="n">171</td><td class="n">1600</td><td class="n">1.7·10⁶</td><td class="n">—</td><td><span class="pill ok">ample</span></td></tr>
+    <tr><td>2</td><td class="n">856</td><td class="n">320</td><td class="n">39 800</td><td class="n">3.05</td><td><span class="pill ok">≥ 10 000 h, ≥ 2</span></td></tr>
+  </table></div>
+  <h3>Planet pin, Ø12</h3>
+  <p>Conservative model: simply supported beam between the carrier plates with a point load at mid-span. The span runs between plate mid-planes: the 15 mm gear, a 0.5 mm gap on each side and half of each plate. That gives \(l = 20\) mm in stage 1 (4 mm plates) and \(l = 22\) mm in stage 2 (6 mm plates).</p>
+  <div class="eq">\[ M=\frac{F\,l}{4} \qquad \sigma_b=\frac{32M}{\pi d^3} \qquad \tau=\frac{4}{3}\cdot\frac{F/2}{\pi d^2/4} \qquad \sigma_{vM}=\sqrt{\sigma_b^2+3\tau^2} \qquad \delta=\frac{F\,l^3}{48\,E\,I} \]</div>
+  <div class="eq">\[ F=2394\ \text{N (stage 2 peak)},\ l=22\ \text{mm}:\quad \sigma_{vM}=81\ \text{MPa}\ \Rightarrow\ S=\frac{1650}{81}=20 \qquad \delta=2.5\ \mu\text{m} \]</div>
+  <p>The pin bends symmetrically, because the planet sits mid-span, so this deflection moves the planet without tilting it. The mesh misalignment comes from the helix tolerance and the pin fit; it is worked out in section 16.</p>
+</section>
+
+<section class="sheet" id="rating">
+  <h2><span class="num">09</span>Gearbox torque rating</h2>
+  <p>For each criterion, the rated output torque \(T_{2N}\) that brings it exactly to its minimum is solved for, with \(K_A = 1.25\) and 10 000 h. The lowest value is the gearbox rating.</p>
+  <figure class="chart" aria-label="Allowable rated output torque by criterion">
+    <svg viewBox="0 0 720 270" role="img">
+      <title>Allowable torque by criterion: planet bearing 90 N·m, sun–planet contact 198, planet–ring contact 243, planet bending 409. Motor rated torque 60 N·m.</title>
+      <g stroke="var(--rule)" stroke-width="1">
+        <line x1="230" y1="20" x2="230" y2="225"/><line x1="335" y1="20" x2="335" y2="225"/>
+        <line x1="440" y1="20" x2="440" y2="225"/><line x1="545" y1="20" x2="545" y2="225"/>
+        <line x1="650" y1="20" x2="650" y2="225"/>
+      </g>
+      <g class="muted"><text x="230" y="245" text-anchor="middle">0</text><text x="335" y="245" text-anchor="middle">100</text>
+        <text x="440" y="245" text-anchor="middle">200</text><text x="545" y="245" text-anchor="middle">300</text>
+        <text x="650" y="245" text-anchor="middle">400 N·m</text></g>
+      <!-- scale: 1.05 px per N·m from x=230 -->
+      <text class="lbl" x="220" y="47" text-anchor="end">Planet bearing S2</text>
+      <rect x="230" y="30" width="95" height="26" rx="3" fill="var(--decision)"/>
+      <text x="331" y="48">90 · governs</text>
+      <text class="lbl" x="220" y="97" text-anchor="end">Sun–planet contact S2</text>
+      <rect x="230" y="80" width="208" height="26" rx="3" fill="var(--accent)"/>
+      <text x="444" y="98">198</text>
+      <text class="lbl" x="220" y="147" text-anchor="end">Planet–ring contact S2</text>
+      <rect x="230" y="130" width="255" height="26" rx="3" fill="var(--accent)" opacity=".75"/>
+      <text x="491" y="148">243</text>
+      <text class="lbl" x="220" y="197" text-anchor="end">Planet bending S2</text>
+      <rect x="230" y="180" width="429" height="26" rx="3" fill="var(--accent)" opacity=".5"/>
+      <text x="665" y="198">409</text>
+      <line x1="292.8" y1="18" x2="292.8" y2="225" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="296" y="14" class="muted">motor: 60</text>
+    </svg>
+  </figure>
+  <div class="eq">\[ T_{2N,adm}\big|_{L_{10h}} = T_{2N}\left(\frac{L_{10h}}{10\,000}\right)^{3/10}=59.8\cdot\left(\frac{39\,800}{10\,000}\right)^{0.3}\approx 90\ \text{N·m} \]</div>
+  <p>The contact bars use the assumed \(K_{H\beta} = 1.15\). With \(K_{H\beta}\) from the misalignment budget instead (section 16: M6 pin fit, flanks without crowning), stage 2 contact allows 113 N·m. That is still above 90, so the bearing still governs.</p>
+  <div class="decision"><span class="id">D-010 · Rating limited by the planet bearing</span><p>The gearbox is rated at about 90 N·m for 10 000 h, 1.5 times the motor's rated torque. The teeth would carry twice that; the limit is the bearing that fits inside a 40.5 mm planet. If more life were needed, the right move is a wider bearing (HK1216) or two in parallel, not a larger module.</p></div>
+  <div class="decision"><span class="id">D-011 · Two identical stages</span><p>Stage 1 runs at one fifth of the torque (\(S_H = 4.6\)) and could be narrower, but both stages keep \(m = 1.5\) and \(b = 15\). That gives one design of planet, pin, bearing and ring: half the part numbers, one set of tooling and no mix-ups at assembly.</p></div>
+</section>
+
+<section class="sheet" id="output-bearings">
+  <h2><span class="num">10</span>Output external loads and bearings</h2>
+  <p>Two 32006 X tapered roller bearings (30 × 55 × 17 mm) in O arrangement with a 10 mm spacer. SKF lists \(C_r = 43.9\) kN, \(C_{0r} = 44\) kN, \(e = 0.43\), \(Y = 1.4\), \(Y_0 = 0.8\). The calculation uses \(C_r = 35.8\) kN, the lowest rating found for an interchangeable 32006 X, so any supplier's bearing meets the life. In an O arrangement each pressure centre sits outside the roller centre by:</p>
+  <div class="eq">\[ a_p=\frac{(d+D)\,e}{6}=\frac{85\cdot0.43}{6}=6.09\ \text{mm} \qquad L=27+2a_p=39.2\ \text{mm} \qquad x=20+23.5-a_p=37.4\ \text{mm} \]</div>
+  <p class="note">\(L\): effective spread between pressure centres (midplanes 27 mm apart). \(x\): overhang from the load point, at mid-length of the 40 mm shaft extension, to the front pressure centre. The 23.5 mm from the shaft shoulder to the front bearing midplane comes from the CAD layout: KM6 locknut and washer (8 mm), Ø28 seal land (7 mm), half the bearing (8.5 mm). Diameters only step down toward the free end, so both cones slide on from the output side.</p>
+  <div class="eq">\[ R_A=F_{2r}\,\frac{L+x}{L} \qquad R_B=F_{2r}\,\frac{x}{L} \qquad F_{i}=\frac{0.5\,F_r}{Y} \]</div>
+  <div class="eq">\[ P=\begin{cases}F_r & F_a/F_r\le e\\ 0.4F_r+Y F_a & F_a/F_r&gt; e\end{cases} \qquad L_{10h}=\left(\frac{C_r}{K_A P}\right)^{10/3}\frac{10^6}{60\,n_2} \qquad P_0=\max(F_r,\ 0.5F_r+Y_0F_a) \]</div>
+  <p>Each bearing's axial load comes from its induced force plus the external one, checked with \(F_{2a}\) acting in both directions. Allowable radial load per criterion, with \(F_{2a} = 0.5\,F_{2r}\):</p>
+  <div class="tbl"><table>
+    <tr><th>Criterion</th><th class="n">\(F_{2r,max}\) [kN]</th><th></th></tr>
+    <tr><td>Bearing life \(L_{10h} \ge 10\,000\) h at 120 rpm</td><td class="n">3.86</td><td><span class="pill gov">governs</span></td></tr>
+    <tr><td>Shaft fatigue \(S \ge 2.0\)</td><td class="n">7.18</td><td></td></tr>
+    <tr><td>Bearing static \(S_0 \ge 2\)</td><td class="n">11.3</td><td></td></tr>
+    <tr><td>Shaft static \(S \ge 1.5\) at \(T_{2B}\)</td><td class="n">33.4</td><td></td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>Check at the rated loads</th><th class="n">Value</th></tr>
+    <tr><td>Front / rear reaction \(R_A,\ R_B\)</td><td class="n">5.86 / 2.86 kN</td></tr>
+    <tr><td>Lowest \(L_{10h}\) (rear bearing, axial load toward it)</td><td class="n">23 100 h</td></tr>
+    <tr><td>Lowest \(S_0\)</td><td class="n">7.5</td></tr>
+    <tr><td>Tilting moment \(M_{2k}=F_{2r}\,(x+L/2)\)</td><td class="n">171 N·m</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-014 · Rated output loads</span><p>\(F_{2r} = 3.0\) kN radial at mid-length of the shaft extension and \(F_{2a} = 1.5\) kN axial. That is 22 % below the governing limit of 3.86 kN, and gives 23 000 h, more than twice the life requirement, at \(K_A = 1.25\). The 2:1 radial-to-axial ratio follows common servo-gearbox catalogue practice. These loads cover a belt pulley, a pinion or a directly mounted arm.</p></div>
+  <div class="decision"><span class="id">D-015 · Tapered roller bearings in O arrangement</span><p>The O arrangement moves the pressure centres outward, adding 12 mm of effective spread and therefore tilting stiffness under overhung loads. It carries axial load in both directions, and a shaft locknut sets a light preload that removes running clearance, which matters for servo positioning. A pair of deep-groove ball bearings was rejected: lower tilting stiffness and no adjustable preload.</p></div>
+</section>
+
+<section class="sheet" id="output-shaft">
+  <h2><span class="num">11</span>Output shaft</h2>
+  <p>Two sections are checked: the shoulder of the Ø25 extension (fillet r = 1) and the Ø30 bearing seat at the front pressure centre. Fatigue uses rotating bending, fully reversed, against a steady mean torque, combined by Goodman. The static check uses the peak torque.</p>
+  <div class="eq">\[ \sigma_N=0.5\,R_m\,K_d\,K_s=0.5\cdot1000\cdot0.85\cdot0.90=382.5\ \text{MPa} \]</div>
+  <div class="eq">\[ \sigma_a=\beta_b\,\frac{32M}{\pi d^3} \qquad \tau_m=\beta_t\,\frac{16\,K_A T_{2N}}{\pi d^3} \qquad \sigma_{m,eq}=\sqrt{\sigma_m^2+3\tau_m^2} \qquad S=\frac{1}{\sigma_a/\sigma_N+\sigma_{m,eq}/R_m} \]</div>
+  <div class="eq">\[ S_{st}=\frac{R_e}{\sqrt{\sigma^2+3\tau^2}},\qquad \tau=\frac{16\,T_{2B}}{\pi d^3} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Section</th><th class="n">\(M\) [N·m]</th><th class="n">\(\beta_b / \beta_t\)</th><th class="n">\(\sigma_a\) [MPa]</th><th class="n">\(\tau_m\) [MPa]</th><th class="n">\(S\) fatigue</th><th class="n">\(S\) static</th></tr>
+    <tr><td>Ø25 shoulder</td><td class="n">60.0</td><td class="n">1.8 / 1.4</td><td class="n">70.4</td><td class="n">34.1</td><td class="n">4.11</td><td class="n">5.99</td></tr>
+    <tr><td>Ø30 bearing seat</td><td class="n">112.2</td><td class="n">1.6 / 1.3</td><td class="n">67.7</td><td class="n">18.3</td><td class="n">4.79</td><td class="n">9.20</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-016 · Keyless output shaft, Ø25 h6</span><p>A parallel key has side clearance, which shows up as backlash in a servo axis, and its keyway is a notch with \(\beta \approx 2\)–2.3. At peak torque a DIN 6885 key 8 × 7 × 32 would also see a hub pressure of \(p = 2T/(d\,(h-t_1)\,l_{eff}) = 2\cdot209\,000/(25\cdot3\cdot24) = 232\) MPa, too high for an unknown customer hub. A clamping hub or shrink disc transmits the torque by friction, without backlash.</p></div>
+</section>
+
+<section class="sheet" id="input">
+  <h2><span class="num">12</span>Input side</h2>
+  <p>Input shaft Ø12, integral with the stage 1 sun. The sun root diameter is 1.94 times the shaft diameter, so the sun body is never weakened by the shaft.</p>
+  <div class="eq">\[ \tau_{max}=\frac{16\,T_{max}}{\pi d^3}=\frac{16\cdot8360}{\pi\cdot12^3}=24.6\ \text{MPa} \quad\Rightarrow\quad S=\frac{R_e}{\sqrt3\,\tau}=17.6 \]</div>
+  <p>Three planets at 120° cancel each other's mesh forces on the sun, \(\sum \vec F = 0\) in the ideal case. The input bearings therefore carry only the coupling's restoring force and the shaft's weight, generously taken as 200 N per bearing:</p>
+  <div class="eq">\[ L_{10h}=\left(\frac{C_r}{K_A F_r}\right)^{3}\frac{10^6}{60\,n_1}=\left(\frac{7280}{250}\right)^3\frac{10^6}{60\cdot3000}=137\,000\ \text{h} \qquad v_{seal}=\frac{\pi\,d\,n_{max}}{60\,000}=3.77\ \text{m/s} \]</div>
+  <div class="decision"><span class="id">D-017 · Input bearings and coupling</span><p>Two 6201-2Z deep-groove ball bearings, chosen by shaft size, since load does not size them. Shields rather than contact seals keep friction low at 6000 rpm; a separate lip seal closes the gearbox, at a surface speed well within the usual limit for elastomer seals. The motor connects through a metal bellows coupling, torsionally stiff and free of backlash, rated at \(T_{KN} \ge 1.5\,T_{max} = 12.5\) N·m, with hub bores Ø19 (motor, confirmed) and Ø12 (gearbox).</p></div>
+  <p>The coupling also protects the motor: the force it puts on the motor shaft must stay below the motor's allowable radial load. With the 200 N design assumption the margin is \(392/200 = 1.96\), and a bellows coupling's lateral stiffness keeps the real force far lower for the misalignment a machined adapter flange allows.</p>
+</section>
+
+<section class="sheet" id="fits">
+  <h2><span class="num">13</span>Fits (ISO 286)</h2>
+  <p>Rule: the ring that rotates relative to the load gets interference, so it cannot creep. The ring under a stationary load gets a transition fit, so the floating bearing can slide axially. Bearing ring tolerances follow ISO 492, normal class. Clearance is positive and interference negative, in µm.</p>
+  <div class="tbl"><table>
+    <tr><th>Joint</th><th class="n">Nominal</th><th>Fit</th><th class="n">Range [µm]</th><th>Reason</th></tr>
+    <tr><td>32006 X cone on output shaft</td><td class="n">Ø30</td><td>k6</td><td class="n">−25 … −2</td><td>rotating inner-ring load</td></tr>
+    <tr><td>32006 X cup in housing</td><td class="n">Ø55</td><td>J7</td><td class="n">−12 … +31</td><td>stationary outer-ring load</td></tr>
+    <tr><td>HK1212 cup in planet bore</td><td class="n">Ø18</td><td>N6</td><td class="n">press</td><td>steel housing; the drawn cup takes its round shape from the bore</td></tr>
+    <tr><td>Planet pin as raceway</td><td class="n">Ø12</td><td>h6</td><td class="n">running</td><td>gives normal running clearance with the N6 bore</td></tr>
+    <tr><td>Planet pin in bridge plate</td><td class="n">Ø12</td><td>R7 / h6</td><td class="n">−34 … −5</td><td>press fit: holds the pin axially, pin does not turn</td></tr>
+    <tr><td>Planet pin in bolted plate</td><td class="n">Ø12</td><td>M6 / h6</td><td class="n">−15 … +7</td><td>the pin is the dowel of the bolted plate; small play keeps it parallel</td></tr>
+    <tr><td>6201 on input shaft</td><td class="n">Ø12</td><td>j6</td><td class="n">−16 … +3</td><td>rotating inner ring, light load</td></tr>
+    <tr><td>6201 in input housing</td><td class="n">Ø32</td><td>J7</td><td class="n">−11 … +25</td><td>stationary outer ring, one bearing floats</td></tr>
+    <tr><td>Output shaft extension</td><td class="n">Ø25</td><td>h6</td><td class="n">—</td><td>standard for clamping hubs and shrink discs</td></tr>
+  </table></div>
+  <p>A drawn cup has a thin pressed shell and no inner ring, so its running clearance depends on the bore and the pin rather than on the bearing. The manufacturer's recommendation for a steel housing is bore N6 (R6 in aluminium) and shaft h6, with the pin as raceway at ≥ 58 HRC, Ra ≈ 0.2 µm and roundness within IT3. The planet rim (9.4 mm) is thicker than the 6 mm below which thin-housing corrections apply.</p>
+  <p>Housing fits assume a steel or cast-iron housing. If the housing is aluminium (step 6), its bores grow more than the steel bearing rings as the gearbox warms up, by:</p>
+  <div class="eq">\[ \Delta d = d\,(\alpha_{Al}-\alpha_{St})\,\Delta T = 55\cdot(23-11.5)\cdot10^{-6}\cdot60 = 0.038\ \text{mm} \]</div>
+  <div class="decision"><span class="id">D-018 · Fits follow the load direction</span><p>Interference on every rotating-load ring and transition on stationary ones, as listed. If an aluminium housing is chosen, the housing fits move one class tighter (J7 → M7) to keep the outer rings seated at 80 °C.</p></div>
+</section>
+
+<section class="sheet" id="interstage">
+  <h2><span class="num">14</span>Interstage connection</h2>
+  <p>The stage 1 carrier drives the stage 2 sun. The sun is a separate shaft-gear with an integral spline stub, pressed into a hub on the stage 1 rear carrier plate. The torque it carries is the stage 1 output:</p>
+  <div class="eq">\[ T_{s2}=i_1\,T_{in}: \qquad 5\cdot2.39=11.95\ \text{N·m (rated)} \qquad 5\cdot8.36=41.8\ \text{N·m (peak)} \]</div>
+  <p>Flank pressure of an involute spline (DIN 5480 W 16 × 1 × 14, engaged length \(L = 8\) mm, load-sharing factor \(\varphi = 0.75\), bearing depth \(h_w \approx 0.9m\)):</p>
+  <div class="eq">\[ p=\frac{2T}{d\,h_w\,L\,z\,\varphi} \qquad p_{rated}=28\ \text{MPa}\ \left(S=\tfrac{100}{28}=3.5\right) \qquad p_{peak}=79\ \text{MPa}\ \left(S=\tfrac{200}{79}=2.5\right) \]</div>
+  <div class="eq">\[ \tau_{peak}=\frac{16\,T}{\pi d_f^3}=\frac{16\cdot41\,800}{\pi\cdot13.8^3}=81\ \text{MPa} \quad\Rightarrow\quad S=\frac{R_e}{\sqrt3\,\tau}=\frac{800}{\sqrt3\cdot81}=5.7 \]</div>
+  <div class="decision"><span class="id">D-020 · Splined interstage, not one integral part</span><p>A single part (carrier plate plus sun) would save one joint. But its sun teeth would sit next to a Ø96 flange that blocks the grinding wheel, and the whole carrier would have to be carburised with the sun. As two parts, the sun is ground as a plain shaft-gear and case-hardened on its own, the carrier stays in 42CrMo4 +QT, and each stage can be assembled and run separately. An interference spline fit removes the spline's backlash. A Ø20 shoulder, below the sun root diameter of 23.25 mm, gives the axial stop and the grinding run-out. The intermediate member floats radially on six planets, which also helps load sharing.</p></div>
+</section>
+
+<section class="sheet" id="carriers">
+  <h2><span class="num">15</span>Carrier cages</h2>
+  <p>Each carrier is a cage: one plate carries three bridges between the planets, and the opposite plate is screwed to them (3 × M5). The far plate passes half of every pin force back to the output plate through the bridges. They are modelled as guided beams between the plates, with a 16 mm gap and a 10 × 18 mm section:</p>
+  <div class="eq">\[ V=\frac{T_c/2}{r\,N} \qquad M=\frac{V\,l}{2} \qquad \sigma=\frac{M}{h\,t^2/6} \qquad \text{stage 2 peak: } V=1032\ \text{N},\ \sigma=27.5\ \text{MPa} \]</div>
+  <p>The bridges must clear the spinning planets. A bridge centred mid-way between two planets, at the planet-centre radius, has its nearest planet centre at \(u=a\cos(\pi/N)-a\) radially and \(w=a\sin(\pi/N)\) tangentially:</p>
+  <div class="eq">\[ c=\sqrt{\left(|u|-\tfrac{h}{2}\right)^2+\left(|w|-\tfrac{t}{2}\right)^2}-\frac{d_{a,p}}{2}=\sqrt{7.9^2+24.2^2}-21.75=3.7\ \text{mm} \]</div>
+  <p>Radially the bridge spans 24.75 to 42.75 mm, outside the sun tip (15 mm) and inside the ring tip (52.5 mm).</p>
+  <div class="decision"><span class="id">D-021 · Bolted cages, low-head screws on stage 2</span><p>The stage 2 rear plate sits 1 mm from the stage 1 carrier, which turns five times faster. Its screws are low-head DIN 7984 M5 in Ø10 × 3.5 counterbores inside the 6 mm plate, so nothing protrudes. The plate bore grows from Ø16 to Ø30 to pass the Ø26 spline hub with 2 mm radial clearance.</p></div>
+  <div class="decision"><span class="id">D-022 · Output shaft integral with the stage 2 carrier</span><p>The output plate and the output shaft are one 42CrMo4 +QT part. This removes a torque joint at the highest torque in the gearbox (209 N·m peak), along with its run-out. It also lets the bearing seats be ground in the same set-up as the pin bores.</p></div>
+</section>
+
+<section class="sheet" id="planet-support">
+  <h2><span class="num">16</span>Planet thrust washers, pin retention and face-load factor</h2>
+  <p>Each planet runs with a gap \(g = 0.5\) mm to each carrier plate. A floating washer of thickness \(t\) in each gap leaves an axial end float of:</p>
+  <div class="eq">\[ s=2\,(g-t)=2\,(0.5-0.4)=0.2\ \text{mm} \]</div>
+  <p>That is inside the usual 0.1–0.3 mm for planets. The drawn cup is 12 mm wide in a 15 mm planet, so it sits 1.5 mm below each face. The washer therefore bears on the planet face outside the cup and its 0.5 mm bore chamfer, on \(r = 9.5 \ldots 12\) mm:</p>
+  <div class="eq">\[ A=\pi\left(r_o^2-r_i^2\right)=\pi\left(12^2-9.5^2\right)=169\ \text{mm}^2 \qquad F_a=0.1\,F_t \qquad p=\frac{F_a}{A} \qquad v=\omega_{p,rel}\,\frac{r_i+r_o}{2} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Peak case (8.36 N·m, 6000 rpm)</th><th class="n">\(F_a\) [N]</th><th class="n">\(p\) [MPa]</th><th class="n">\(v\) [m/s]</th><th class="n">\(pv\) [MPa·m/s]</th></tr>
+    <tr><td>Stage 1</td><td class="n">24</td><td class="n">0.14</td><td class="n">3.6</td><td class="n">0.51</td></tr>
+    <tr><td>Stage 2</td><td class="n">120</td><td class="n">0.71</td><td class="n">0.72</td><td class="n">0.51</td></tr>
+  </table></div>
+  <p>Both stages have the same \(pv\). Thrust scales with torque and sliding speed with the relative planet speed, and torque × speed is the power each stage passes. Clearance from the washer edge to the sun tip circle: \(a-r_o-r_{a,s}=33.75-12-15=6.75\) mm.</p>
+  <h3>Pin press fit (R7/h6 in the bridge plate)</h3>
+  <p>Lamé equations for a solid pin in a ring. For the ring, the thinnest ligament (pin bore to the Ø96 plate edge, 8.25 mm) is taken as a ring of \(D_{eff} = 28.5\) mm, so \(Q = d/D_{eff} = 0.42\). The interference is reduced by surface smoothing, \(0.8\,(R_{z,pin}+R_{z,bore}) = 0.8\,(1+4) = 4\ \mu\)m:</p>
+  <div class="eq">\[ p=\frac{\delta-4\ \mu\text{m}}{d\left[\dfrac{1}{E}\left(\dfrac{1+Q^2}{1-Q^2}+\nu\right)+\dfrac{1-\nu}{E}\right]} \qquad F_{out}=\mu\,p\,\pi\,d\,L \qquad \sigma_{vM,hub}=p\sqrt{k^2+k+1},\ k=\frac{1+Q^2}{1-Q^2} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Interference</th><th class="n">\(\delta\) [µm]</th><th class="n">\(p\) [MPa]</th><th class="n">\(F_{out}\) stage 1 / 2 [N]</th><th class="n">\(\sigma_{vM,hub}\) [MPa]</th></tr>
+    <tr><td>minimum</td><td class="n">5</td><td class="n">7</td><td class="n">109 / 163</td><td class="n">15</td></tr>
+    <tr><td>mean</td><td class="n">19.5</td><td class="n">112</td><td class="n">1 680 / 2 520</td><td class="n">236</td></tr>
+    <tr><td>maximum</td><td class="n">34</td><td class="n">216</td><td class="n">3 260 / 4 880</td><td class="n">457 \(\ (S=750/457=1.64)\)</td></tr>
+  </table></div>
+  <p>With \(\mu = 0.1\) and \(L\) = plate thickness. The pin carries no axial load: planet thrust goes through the washer into the plate face, not into the pin. So even the minimum-interference push-out force only has to hold the pin against vibration.</p>
+  <h3>Face-load factor from the misalignment budget (ISO 6336-1, method C)</h3>
+  <p>Helix slope tolerance for grade 6 (ISO 1328-1, class 5 base value × √2 per grade), with \(d = 40.5\) and \(b = 15\):</p>
+  <div class="eq">\[ f_{H\beta}=\sqrt2\left(0.07\sqrt d+0.45\sqrt b+3\right)=7.3\ \mu\text{m} \]</div>
+  <p>The pin is clamped in the bridge plate. At the bolted plate it can shift by half the maximum fit play \(c\), which tilts it across the face width \(b\) over the span \(l\):</p>
+  <div class="eq">\[ f_{pin}=\frac{c_{max}}{2}\cdot\frac{b}{l} \qquad F_{\beta x}=B\sqrt{f_{H\beta}^2+f_{pin}^2} \qquad F_{\beta y}=0.85\,F_{\beta x} \qquad c_{\gamma\beta}=0.85\,c_\gamma=17\ \tfrac{\text{N}}{\text{mm·µm}} \]</div>
+  <div class="eq">\[ K_{H\beta}=1+\frac{c_{\gamma\beta}F_{\beta y}}{2\,F_m/b}\ \ (\le 2) \qquad\text{otherwise}\qquad K_{H\beta}=\sqrt{\frac{2\,c_{\gamma\beta}F_{\beta y}}{F_m/b}} \qquad F_m=F_t K_A K_v \]</div>
+  <p>The shaft-bending term \(f_{sh}\) is taken as zero: the planet sits at mid-span and the sun floats. \(B = 1\) applies without flank modification and \(B = 0.5\) with helix crowning (ISO 6336-1, table 8). Stage 2 at the rated case, \(F_m/b = 29\) N/mm:</p>
+  <div class="tbl"><table>
+    <tr><th>Bolted-plate fit</th><th class="n">\(c_{max}\) [µm]</th><th class="n">\(f_{pin}\) [µm]</th><th>Flanks</th><th class="n">\(K_{H\beta}\)</th><th class="n">\(S_{H,min}\)</th><th></th></tr>
+    <tr><td>M6 / h6</td><td class="n">7</td><td class="n">2.4</td><td>not crowned</td><td class="n">2.77</td><td class="n">1.41</td><td><span class="pill ok">≥ 1.2</span></td></tr>
+    <tr><td>M6 / h6</td><td class="n">7</td><td class="n">2.4</td><td>helix crowning</td><td class="n">1.96</td><td class="n">1.67</td><td><span class="pill ok">selected</span></td></tr>
+    <tr><td>K7 / h6</td><td class="n">17</td><td class="n">5.8</td><td>not crowned</td><td class="n">3.05</td><td class="n">1.34</td><td><span class="pill gov">rejected</span></td></tr>
+    <tr><td>K7 / h6</td><td class="n">17</td><td class="n">5.8</td><td>helix crowning</td><td class="n">2.16</td><td class="n">1.59</td><td></td></tr>
+  </table></div>
+  <p>At these light loads the line load is small next to the mesh stiffness times the misalignment, so \(K_{H\beta}\) lands on its upper branch. There \(\sigma_H \propto T^{1/4}\) instead of \(T^{1/2}\): the factor is large, but the contact stress grows slowly. Stage 1 (\(F_m/b = 6.2\) N/mm) gives \(K_{H\beta} = 6.0\) and still has \(S_H = 2.0\). The lowest root safety in stage 2 is \(S_F = 5.1\).</p>
+  <div class="decision"><span class="id">D-023 · Floating hardened-steel thrust washers, 0.4 mm</span><p>Two washers per planet, Ø12.2 × Ø24 × 0.4 mm, in 1.8159 (51CrV4) hardened and tempered to 45–50 HRC. Without them the case-hardened planet face (about 60 HRC) would wear the 42CrMo4 +QT plate (about 30 HRC). The 0.4 mm thickness fits the existing 0.5 mm gaps with 0.2 mm end float, so no plate, bridge or shaft moves. A polymer washer could not be made that thin and still last, and with \(pv \approx 0.5\) MPa·m/s, greased steel is enough. The Ø24 outside diameter bears on the planet face outside the needle cup and stays 6.75 mm clear of the sun.</p></div>
+  <div class="decision"><span class="id">D-024 · Pins pressed into the bridge plate, M6 in the bolted plate</span><p>Assembly order:</p><ol><li>Bolt the cage together.</li><li>Finish both pin bores in one set-up, so they are coaxial.</li><li>Slide the planets and washers in radially between the bridges.</li><li>Press each pin through the bolted plate and the needle bearing into the bridge plate.</li></ol><p>R7 in the bridge plate holds the pin axially and stops it turning. M6 in the bolted plate makes the three pins the dowels of that plate, and its 7 µm maximum play keeps the pin tilt at 2.4 µm across the face. The cage can still be taken apart by pressing the pins out. K7 would assemble more easily, but its 17 µm play costs about 0.07 in \(S_H\).</p></div>
+  <div class="decision"><span class="id">D-025 · Helix crowning on the planets</span><p>The method C check replaces the assumed \(K_{H\beta} = 1.15\). Without crowning the stage 2 sun flank still passes with \(S_H = 1.41 \ge 1.2\). A light helix crowning on the planets, sized in step 8 against \(F_{\beta x}\), brings it to 1.67. It is cheap on a ground gear, and it also covers the tilt from housing and carrier tolerances that this budget leaves out.</p></div>
+</section>
+
+<section class="sheet" id="housing">
+  <h2><span class="num">17</span>Housing, ring retention and mounting</h2>
+  <p>The Ø140 limit (R-014) leaves 6.75 mm per side around a Ø126.5 ring. A housing sleeve around the rings would have no room for screws to join its sections. The rings therefore become the housing wall themselves, grown to Ø140. The stack is input housing | ring 1 | spacer | ring 2 | output housing, clamped by eight tie bolts through the ring rims and located by two dowels on the same Ø128 circle.</p>
+  <p>Every stationary part reacts torque in the same sense: the motor stator \(T_{in}\), ring 1 \((i-1)\,T_{in}\) and ring 2 \((i-1)\,i\,T_{in}\). The torque crossing each joint therefore grows toward the mounting:</p>
+  <div class="eq">\[ T_{J1}=T_{in} \qquad T_{J2,3}=i\,T_{in} \qquad T_{J4}=i^2\,T_{in}=T_{2B}=209\ \text{N·m (peak)} \]</div>
+  <h3>Tie bolts (VDI 2230)</h3>
+  <p>8 × ISO 4762 M6 × 70 – 8.8, tightened to \(M_A = 10.1\) N·m (\(\mu_G = 0.12\), 90 % of \(R_{p0.2}\)), thread engaged 10.5 mm in the output flange. The clamped length is \(l_K = 59.5\) mm. Preload after the tightening scatter \(\alpha_A = 1.6\) and embedding \(f_Z\) (3 µm thread, 3 µm head, 2 µm at each of the 4 interfaces):</p>
+  <div class="eq">\[ F_Z=\frac{f_Z}{\delta_S+\delta_P}=\frac{14\ \mu\text{m}}{(13.3+0.46)\cdot10^{-6}\ \text{mm/N}}=1.02\ \text{kN} \qquad F_{V,min}=\frac{F_{M}}{\alpha_A}-F_Z=\frac{10.4}{1.6}-1.02=5.48\ \text{kN} \]</div>
+  <p class="note">\(\delta_S\): bolt compliance (head, shank, free thread, engaged thread). \(\delta_P\): the clamped rim, taken as one eighth of the annulus between r = 56 and 70 mm, because over a 59.5 mm grip the pressure cone fills the rim. The load factor \(\Phi = \delta_P/(\delta_S+\delta_P) = 0.03\) is negligible, since no axial service load passes through this stack.</p>
+  <div class="eq">\[ T_{slip}=\mu_T\,n\,F_{V,min}\,\frac{d_{PCD}}{2}=0.15\cdot8\cdot5.48\cdot64=421\ \text{N·m} \qquad p=\frac{F_M}{\tfrac{\pi}{4}(d_w^2-d_h^2)}=\frac{10\,400}{34.9}=298\ \text{MPa} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Check</th><th class="n">Value</th><th class="n">Limit</th><th class="n">\(S\)</th></tr>
+    <tr><td>Slip, ring 2 | output housing, at \(T_{2B}\)</td><td class="n">209 N·m</td><td class="n">421 N·m</td><td class="n">2.01 \(\ge 1.8\)</td></tr>
+    <tr><td>Slip, ring 1 | spacer | ring 2</td><td class="n">41.8 N·m</td><td class="n">421 N·m</td><td class="n">10.1</td></tr>
+    <tr><td>Head pressure on EN-GJS-500-7</td><td class="n">298 MPa</td><td class="n">\(p_G = 750\) MPa</td><td class="n">2.5</td></tr>
+    <tr><td>Ring rim under a hole, \(s_R/h\)</td><td class="n">1.43</td><td class="n">1.2 (\(Y_B = 1\))</td><td class="n">—</td></tr>
+  </table></div>
+  <p>\(S \ge 1.8\) is the VDI 2230 value for transverse loads that reverse, which a servo axis does on every move. The dowels only locate the sections; the torque is carried by friction. The joint faces are sealed with an anaerobic flange sealant, which does not lower the friction.</p>
+  <h3>Bearing arrangement in the housings</h3>
+  <p>Output: the two 32006 X cups sit on either side of a 10 mm housing collar (bore Ø48, inside the cup abutment range). The cones are clamped by the KM6 nut against the Ø36 shaft shoulder through a 10 mm inner spacer. The bearing setting, light preload or zero clearance, is the difference between the ground spacer and the collar widths, so tightening the nut fixes it rather than adjusts it. Input: the two 6201 are cross-located against a central housing collar (Ø27), and each takes one axial direction. This replaces the "one bearing floats" of D-017; with 20 mm between the bearings and the same material for shaft and housing, thermal expansion is negligible.</p>
+  <p>Output stack along the shaft, from the carrier:</p>
+  <ul>
+    <li>Ø36 shoulder.</li>
+    <li>32006 X rear, z −44 … −61.</li>
+    <li>Cone spacer Ø30/Ø35 × 10.</li>
+    <li>32006 X front, z −71 … −88.</li>
+    <li>MB 6 lock washer, DIN 5406, 1 mm. Its inner tab runs in a 6 mm shaft groove.</li>
+    <li>KM 6 nut, Ø45 × 7, ending at z −96.</li>
+    <li>A 1 mm running gap.</li>
+    <li>The 28 × 42 × 7 seal on the Ø28 land, at z −97 … −104.</li>
+  </ul>
+  <p>The seal cover is 9 mm thick, so the turning nut cannot touch it. The nut, washer and cone spacer turn with the output shaft, so they are mated to the carrier. The cups and the seal are stationary.</p>
+  <p>Input stack, from the sun:</p>
+  <ul>
+    <li>Ø15 shoulder.</li>
+    <li>6201-2Z, z 15 … 25.</li>
+    <li>Ø27 housing collar.</li>
+    <li>6201-2Z, z 35 … 45.</li>
+    <li>DIN 471 circlip, 12 × 1.</li>
+    <li>The 12 × 32 × 7 seal at z 47 … 54.</li>
+    <li>The bellows coupling, Ø50 envelope, z 55 … 123. Its gearbox hub covers z 55 … 75; its motor hub covers z 85 … 123 and takes the full 40 mm of the Ø19 shaft.</li>
+  </ul>
+  <p>The two clamp screws line up with the Ø12 access holes at z 65 and 103. With all purchased parts modelled, the gearbox weighs 10.1 kg without the motor.</p>
+  <p>Fasteners in the model:</p>
+  <ul>
+    <li>Tie bolts: 8 × ISO 4762 M6 × 70 – 8.8, heads on the input flange at z = 25, engaging 10.5 mm in the output flange.</li>
+    <li>Dowels: 2 × ISO 8734 Ø6 m6 × 60, through the whole stack from z 16 to −44. The holes are line-reamed with the stack clamped, so one pin locates all five sections.</li>
+    <li>Seal cover: 4 × ISO 4762 M4 × 16, engaging 7 mm.</li>
+    <li>Carrier cages: 3 × M5 per stage.</li>
+  </ul>
+  <p>An interference check of all 67 non-gear parts finds only the threads engaged in their tap-drill holes, with the expected volumes, and nothing else.</p>
+  <h3>Carrier cage screws</h3>
+  <p>One M5 – 8.8 per bridge clamps the bolted plate to the bridge: ISO 4762 M5 × 12 in stage 1, and DIN 7984 M5 × 10 sunk in the Ø10 counterbores in stage 2 (D-021), each engaging 7.5–8 mm in 42CrMo4. The bridge shear \(V\) from section 15 has to cross that joint:</p>
+  <div class="eq">\[ F_{V,min}=0.9\,\frac{F_M}{\alpha_A}=0.9\cdot\frac{6.9}{1.6}=3.88\ \text{kN} \qquad F_{R}=\mu_T\,F_{V,min}=0.58\ \text{kN} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Bridge shear</th><th class="n">rated × \(K_A\) [N]</th><th class="n">\(S\) friction</th><th class="n">peak [N]</th><th class="n">\(S\) friction</th></tr>
+    <tr><td>Stage 1</td><td class="n">74</td><td class="n">7.9</td><td class="n">206</td><td class="n">2.8</td></tr>
+    <tr><td>Stage 2</td><td class="n">369</td><td class="n">1.58</td><td class="n">1 032</td><td class="n">0.56</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-029 · Cage screws clamp, the planet pins locate</span><p>Friction alone holds the stage 2 cage in continuous operation (\(S = 1.58\)) but not at peak acceleration torque. There the bolted plate can shift by at most the 7 µm play of the M6 pin fit, and then the three pins carry the shear as dowels: 9 MPa in one pin even if it took the whole bridge force. This is the role D-024 already gave the M6 fit, so no extra dowels are needed. The screws are tightened to 5.9 N·m and secured with medium-strength thread locker. They see no service tension, because the planet loads close through the pins and bridges.</p></div>
+  <h3>Mounting</h3>
+  <p>The gearbox mounts by the flange face at z = −46 mm, with 4 × M8 – 10.9 tapped through the flange. The Ø80 h7 bearing neck is the centring spigot, and it carries the radial load \(F_{2r}\) by form fit, so the bolts carry only torque and tilting moment:</p>
+  <div class="eq">\[ M=F_{2r}\,l=3.0\cdot77=231\ \text{N·m} \qquad F_{A,max}=\frac{2M}{n\,r}+\frac{F_{2a}}{n}=2.18\ \text{kN} \qquad F_t=\frac{T_{2B}}{n\,r}=0.82\ \text{kN} \]</div>
+  <div class="eq">\[ S_{slip}=\frac{\mu_T\,(F_{V,min}-F_{A,max})}{F_t}=\frac{0.15\,(15.75-2.18)}{0.82}=2.49 \qquad \sigma_{b,neck}=\frac{M}{W_b}=5.9\ \text{MPa} \]</div>
+  <p class="note">The rated external loads (D-014) are combined with the peak torque, which is conservative. \(F_{V,min} = 0.9\,F_M/\alpha_A\) allows 10 % embedding in the customer's plate. The thread engages 1.44 d in the cast iron.</p>
+  <h3>Overall length (R-015)</h3>
+  <p>Mounting face to motor face, z −46 to +125, gives \(L = 171\) mm. The input chain sets it: input shaft to z = 75, a bellows coupling from z 55 to 123, and an SGM7J-08 shaft 40 mm long that has to sit fully in the motor hub. The output shaft extension and the motor are excluded.</p>
+  <h3>Heat balance at the rated point</h3>
+  <div class="eq">\[ \Delta T=\frac{P_{loss}}{\alpha\,A}=\frac{750\,(1-0.96)+10}{15\cdot0.096}=28\ \text{K} \qquad \text{pessimistic, }0.95\text{ per stage: } \frac{73}{1.44}=51\ \text{K} \]</div>
+  <p>\(A\) is the outer surface of the housing, rings and motor adapter. \(\alpha = 15\) W/(m²·K) is natural convection plus radiation from a painted surface, and the 10 W covers the input seal, the bearings and grease churning. At 25 °C ambient the housing stays at 53–76 °C, inside the 80 °C behind D-018 and the usual grease limit. Conduction into the machine is ignored, and so is heat from the motor flange; the two partly cancel.</p>
+  <div class="decision"><span class="id">D-026 · Ring gears as housing sections</span><p>The rings grow from Ø126.5 to Ø140 and take 8 × Ø6.6 tie-bolt holes and 2 × Ø6 dowel holes on Ø128. This gives the most material inside R-014, and the 42CrMo4 +QT rings become the stiffest part of the wall. The alternative, a sleeve around Ø126.5 rings, was rejected. With only a 6.75 mm wall, the input housing could not be screwed to it. Holding the rings by press fit alone would need an s6-class interference, and that shrinks the ring teeth by up to about 0.05 mm on diameter, which eats into backlash. The exposed ring OD gets black oxide.</p></div>
+  <div class="decision"><span class="id">D-027 · Housings in EN-GJS-500-7</span><p>Input and output housings in ductile iron. Its expansion (11.5 µm/(m·K)) matches the steel rings and bearings, so the dowels and the J7 bearing fits of D-018 stay valid hot. It damps gear noise better than steel and casts close to shape. Aluminium was rejected. It would save about 2 kg, but between the Ø128 dowels it would move 0.044 mm radially against the steel rings for a 60 K rise, and every housing fit would have to move to M7. The spacer and the seal cover are turned from C45. Masses from CAD: input housing 2.58 kg, output housing 1.74 kg, the two rings 0.69 kg each, spacer 0.49 kg and cover 0.24 kg. That is 6.4 kg of structure in a 9.2 kg gearbox as modelled, before the purchased parts.</p></div>
+  <div class="decision"><span class="id">D-028 · Flange at the ring stack; R-015 revised to 175 mm</span><p>The mounting flange sits on the output housing next to ring 2, where the wall is thickest, and the bearing neck forms the spigot. Moving the flange to the output end would add 50 mm. The 160 mm in R-015 was provisional and dated from before the coupling and motor shaft were known; it is revised to 175 mm, mounting face to motor face. The way to shorten the gearbox would be a hollow input shaft that clamps the motor shaft directly, the usual catalogue design. It is not adopted, because D-017 keeps the bellows coupling to protect the motor bearings.</p></div>
+</section>
+
+<section class="sheet" id="tolerancing">
+  <h2><span class="num">18</span>Backlash, gear inspection and tolerancing</h2>
+  <h3>Backlash budget per mesh</h3>
+  <p>ISO 1328-1 grade 6 single pitch deviation, the class 5 base value × √2:</p>
+  <div class="eq">\[ f_{pt}=\sqrt2\left(0.3\,(m+0.4\sqrt d)+4\right): \quad 7.2\ (\text{sun}),\ 7.4\ (\text{planet}),\ 8.1\ (\text{ring})\ \mu\text{m} \qquad f_{H\beta}=7.3\ \mu\text{m} \]</div>
+  <p>The tooth-thickness allowances must cover four things: a lubricant film, the effect of the gear deviations \(J_n\), the planet-centre position tolerance (Ø0.016, so \(f_a = 8\) µm radially) and a 10 K temperature difference between the gears and the carrier. All of these parts are steel.</p>
+  <div class="eq">\[ J_n=\sqrt{f_{pt,1}^2+f_{pt,2}^2+2\,(f_{H\beta}\sin\alpha)^2} \qquad j_{n,req}=j_{lube}+J_n+2f_a\sin\alpha+2a\,\alpha_{th}\Delta T\sin\alpha \]</div>
+  <div class="eq">\[ j_{n,min}=-(E_{sns,1}+E_{sns,2})\cos\alpha-J_n-2f_a\sin\alpha-\Delta j_{th} \qquad j_{n,max}=-(E_{sni,1}+E_{sni,2})\cos\alpha+2f_a\sin\alpha \]</div>
+  <div class="tbl"><table>
+    <tr><th>Mesh</th><th class="n">\(J_n\) [µm]</th><th class="n">\(j_{n,req}\) [µm]</th><th class="n">provided [µm]</th><th class="n">\(j_n\) running min…max [µm]</th></tr>
+    <tr><td>Sun–planet</td><td class="n">10.9</td><td class="n">29.0</td><td class="n">32.9</td><td class="n">13.9 … 75.9</td></tr>
+    <tr><td>Planet–ring</td><td class="n">11.5</td><td class="n">29.6</td><td class="n">32.9</td><td class="n">13.3 … 75.9</td></tr>
+  </table></div>
+  <p>With the input and the ring held, a carrier can turn until both meshes of a planet close. The planet translates by the mean of the two transverse backlashes, so:</p>
+  <div class="eq">\[ \Delta\varphi_c=\frac{j_{t,sp}+j_{t,pr}}{2a} \qquad \varphi_{out}=\Delta\varphi_{c2}+\frac{\Delta\varphi_{c1}}{i_2} \qquad j_t=\frac{j_n}{\cos\alpha} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Output backlash</th><th class="n">min [arcmin]</th><th class="n">max [arcmin]</th></tr>
+    <tr><td>Worst case, every allowance at its limit</td><td class="n">1.8</td><td class="n">9.9</td></tr>
+    <tr><td>Statistical (uniform allowances, ±3σ)</td><td class="n">4.6</td><td class="n">8.9</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-030 · Backlash class ≤ 10 arcmin, set by tooth thinning</span><p>Allowances in µm (upper / lower): sun −15 / −35, planets −20 / −40, rings −15 / −35. Profile shift stays at x = 0 (D-011). Backlash is set by thinning the teeth, which leaves the 18/27/72 centre distance and its assembly conditions untouched. The ≤ 10 arcmin class matches standard-backlash servo gearboxes. A reduced-backlash version (≤ 5 arcmin) would use grade 5 and the lower half of each band. The CAD models keep nominal, zero-backlash profiles, so the 0.003 cm³ flank overlaps of section 01 are expected. The drawings carry the allowances.</p></div>
+  <h3>Inspection dimensions (x = 0)</h3>
+  <p>Span over \(k\) teeth for the external gears, and dimension over or between Ø2.5 balls, nominal and at the upper / lower allowance:</p>
+  <div class="eq">\[ W_k=m\cos\alpha\left[\pi(k-0.5)+z\,\mathrm{inv}\,\alpha\right] \qquad \mathrm{inv}\,\alpha_M=\frac{s}{d}+\mathrm{inv}\,\alpha\pm\frac{D_M}{d_b}-\frac{\pi}{z}\ (\text{ext.}) \]</div>
+  <div class="tbl"><table>
+    <tr><th>Gear</th><th class="n">\(k\)</th><th class="n">\(W_k\) [mm]</th><th class="n">\(M\) over/between balls Ø2.5 [mm]</th></tr>
+    <tr><td>Sun, z 18</td><td class="n">2</td><td class="n">7.020 → 7.006 / 6.988</td><td class="n">30.262 → 30.227 / 30.180</td></tr>
+    <tr><td>Planet, z 27</td><td class="n">3</td><td class="n">11.638 → 11.619 / 11.600</td><td class="n">43.713 → 43.664 / 43.615</td></tr>
+    <tr><td>Ring, z 72 (between balls)</td><td class="n">—</td><td class="n">—</td><td class="n">104.637 → 104.681 / 104.740</td></tr>
+  </table></div>
+  <h3>Helix crowning (D-025 sized)</h3>
+  <div class="eq">\[ F_{\beta x,0}=\sqrt{f_{H\beta}^2+f_{pin}^2}=7.7\ \mu\text{m} \qquad C_\beta\ge\frac{F_{\beta x,0}}{4}=1.9\ \mu\text{m} \qquad \frac{b_{contact}}{b}=\sqrt{\frac{F_m/b}{c_{\gamma\beta}\,C_\beta}} \]</div>
+  <p>\(C_\beta = 5 \pm 2\) µm, parabolic, on both flanks of the planets. That is enough slope at the face ends to keep the contact central under the full misalignment. The loaded width is 58 % of the face at the rated load (mesh deflection 1.7 µm) and 97 % at peak torque. Method C with \(B = 0.5\) (section 16) already includes this, giving \(S_H = 1.67\).</p>
+  <h3>Tolerance stacks</h3>
+  <div class="tbl"><table>
+    <tr><th>Stack</th><th>Specification</th><th class="n">Result</th></tr>
+    <tr><td>Planet end float</td><td>bridge 16 ± 0.02, planet width 15 h8, washers 0.4 ± 0.02</td><td class="n">0.14 … 0.29 mm</td></tr>
+    <tr><td>Input bearing axial play (cross-located)</td><td>shaft 30 +0.10/0, collar 10 −0.05/−0.10, 6201 width 0/−0.12</td><td class="n">0.05 … 0.44 mm</td></tr>
+    <tr><td>Output bearing setting</td><td>cups measured on the collar, cone spacer ground to suit</td><td class="n">0 … 10 µm preload</td></tr>
+    <tr><td>Ring 2 to stage 2 planets, axial</td><td>housing collar 0.03, ring 0.02, carrier 0.05, bearing setting 0.05, planet float 0.15</td><td class="n">≤ 0.30 (RSS 0.17) → \(b_{eff}\ge 14.7\) mm</td></tr>
+  </table></div>
+  <h3>Datum scheme</h3>
+  <div class="tbl"><table>
+    <tr><th>Part</th><th>Datums</th><th>Key tolerances</th></tr>
+    <tr><td>Output carrier (PG25-305)</td><td>A: Ø30 k6 bearing seat; B: rear shoulder</td><td>runout Ø25 h6 0.010 A, Ø28 0.020 A; ⊥ B 0.008 A; pin bores ⌖ Ø0.012 A B, ∥ 0.005 A; plate face ⊥ 0.010 A</td></tr>
+    <tr><td>Output housing</td><td>A: common axis of the Ø55 J7 seats; B: mounting face</td><td>B ⊥ 0.010 A; spigot Ø80 h7 ◎ 0.020 A; dowel holes ⌖ Ø0.020 A B</td></tr>
+    <tr><td>Rings</td><td>A: joint face; B: dowel hole pattern</td><td>tooth runout to grade 6 relative to A B; faces ∥ 0.010</td></tr>
+    <tr><td>Input housing</td><td>A: Ø32 seats; B: joint face</td><td>motor spigot Ø70 H7 ◎ 0.030 A; motor face ⊥ 0.030 A</td></tr>
+    <tr><td>Planets, suns, pins</td><td>bore or bearing seats</td><td>faces ⊥ 0.010; pin Ø12 h6 cylindricity 0.003, Ra 0.2, ≥ 58 HRC</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-031 · Every gear and bearing is located from the bearing axis</span><p>Each part's primary datum is the bearing axis that locates it in service: the output bearing seats for the carrier and the output housing, the joint face plus the line-reamed dowels for the rings. The pin bores, the ring teeth and the mounting spigot are then all held to the same axis that the gears turn on. That keeps the planet-centre error \(f_a\) and the ring eccentricity within the 8 µm used in the backlash budget.</p></div>
+</section>
+
+<section class="sheet" id="fea">
+  <h2><span class="num">19</span>Finite-element validation</h2>
+  <p>Three linear-static studies in SOLIDWORKS Simulation check the hand calculations at the parts where the load path is least obvious. Each uses a high-quality (second-order) tetrahedral mesh and material data from the part's library entry. The studies are kept in <code>Simulation/</code>, either in a dedicated assembly or on a copy of the part, so the production parts carry no studies. Each region below is reported two ways. The 99th-percentile nodal stress is the nominal value and is the one compared with the hand calculation. The nodal peak is the local maximum, which includes corners and the edges of fixtures and loads.</p>
+  <div class="tbl"><table>
+    <tr><th>Study</th><th>Load case</th><th>Restraints</th><th class="n">Mesh</th></tr>
+    <tr><td>A · Stage 2 carrier cage: output plate with integral shaft, rear plate, 3 pins; contacts bonded</td><td>209 N·m peak output torque, applied as a torque on the three pin surfaces</td><td>Ø25 output journal fixed</td><td class="n">2 mm · 247 k nodes</td></tr>
+    <tr><td>B · Output housing, EN-GJS-500-7</td><td>F<sub>2r</sub> 3 kN + F<sub>2a</sub> 1.5 kN as bearing reactions (radial 5864 / 2864 N, axial 2094 / 3594 N on the cup shoulders); 209 N·m reaction torque on the ring face; tie-bolt preload 8 × 10.4 kN (F<sub>M,max</sub> = α<sub>A</sub> F<sub>M,min</sub>) on the tapped holes, reacted on the joint face</td><td>4 M8 mounting holes fixed, mounting face on rollers</td><td class="n">2.5 mm · 200 k nodes</td></tr>
+    <tr><td>C · Stage 2 ring rim, defeatured: teeth removed, root Ø111.75 to Ø140, all holes kept</td><td>Three meshes, each with F<sub>t</sub> = 167.2 N·m · K<sub>γ</sub> / (3 r) = 1197 N and F<sub>r</sub> = F<sub>t</sub> tan α = 436 N, on ±2.5° windows of the root circle; one mesh lies directly over a tie-bolt hole (worst position)</td><td>8 bolt and 2 dowel holes fixed</td><td class="n">1 mm · 812 k nodes</td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>Region</th><th class="n">Hand calc σ<sub>vM</sub> [MPa]</th><th class="n">FEA nominal [MPa]</th><th class="n">FEA peak [MPa]</th><th class="n">S<sub>y</sub> at peak</th></tr>
+    <tr><td>Carrier bridge, bending (sec. 15)</td><td class="n">27.5</td><td class="n">24.8</td><td class="n">40.9 (sharp bridge root)</td><td class="n">18</td></tr>
+    <tr><td>Output shaft, Ø30 seat, torsion (sec. 11)</td><td class="n">√3 · 39.4 = 68</td><td class="n">86 (MB6 slot)</td><td class="n">122 (slot corner)</td><td class="n">6.2</td></tr>
+    <tr><td>Output shaft, Ø25 shoulder (sec. 11)</td><td class="n">√3 · 68.1 = 118</td><td class="n">137</td><td class="n">154 (step beside the fixture)</td><td class="n">4.9</td></tr>
+    <tr><td>Carrier plates at the pin bores</td><td class="n">—</td><td class="n">36</td><td class="n">62 (bore edge)</td><td class="n">12</td></tr>
+    <tr><td>Housing neck, Ø80 tube (sec. 17)</td><td class="n">√(5.9² + 3 · 2.68²) = 7.6</td><td class="n">12.7</td><td class="n">36.8 (flange–neck corner)</td><td class="n">8.7</td></tr>
+    <tr><td>Housing flange, away from holes</td><td class="n">—</td><td class="n">20</td><td class="n">39</td><td class="n">8.2</td></tr>
+    <tr><td>Housing tie-bolt thread walls</td><td class="n">√3 · F<sub>M</sub>/(π d<sub>3</sub> l) = √3 · 57.6 = 100</td><td class="n">142</td><td class="n">216 (hole exit at the restrained face)</td><td class="n">1.5</td></tr>
+    <tr><td>Ring rim behind the teeth</td><td class="n">—</td><td class="n">21</td><td class="n">44 (edge of a load window)</td><td class="n">17</td></tr>
+    <tr><td>Ring at the tie-bolt hole under a mesh (4.8 mm ligament, sec. 17)</td><td class="n">—</td><td class="n">8.8</td><td class="n">21</td><td class="n">35</td></tr>
+  </table></div>
+  <p>Yield: 42CrMo4 750 MPa, 100Cr6 1650 MPa, EN-GJS-500-7 320 MPa. Where a hand calculation exists for the same nominal section, FEA agrees with it within the expected effect of local geometry: the bridges are within 10 %, and the shaft seat is 26 % higher because of the lock-washer slot. Every peak stays below yield at peak torque.</p>
+  <p>The planet pins are not compared. Study A spreads the pin load along the whole pin, including the lengths inside the plate bores, which understates pin bending (31 MPa against 81 MPa by hand). The hand calculation in section 08, with the load on the 12 mm needle track, stays the design value.</p>
+  <h3>Stiffness</h3>
+  <div class="eq">\[ \varphi_c=\frac{u_t}{r}=\frac{0.080}{33.75}=2.4\ \text{mrad}=8.2\ \text{arcmin at }209\ \text{N·m} \;\Rightarrow\; k_{c2}\approx 88\ \text{N·m/mrad}\ (25\ \text{N·m/arcmin}) \]</div>
+  <p>This is the stage 2 carrier from the output journal to the pins, with bonded joints and the gear meshes left out, so it is an upper bound on its share of the drive's torsional compliance. The output-housing bearing seats deflect at most 7 µm (front) and 3 µm (rear) under F<sub>2r</sub> = 3 kN. That is small next to the bearing setting (0 to 10 µm preload, section 18).</p>
+  <div class="decision"><span class="id">D-032 · FEA checks the design; the hand calculations stay its basis</span><p>The acceptance criterion is S<sub>y</sub> ≥ 1.5 on the nodal peak at peak load, ignoring singular points at the edges of fixtures and loads. All three studies pass with no geometry change. The lowest value, 1.5, is local: it is at the exit of a tie-bolt tapped hole under the upper-bound preload, where the thread load is modelled as a uniform traction on a smooth hole that meets the restrained face. That joint is governed by the VDI 2230 thread-engagement check (10.5 mm in GJS, section 17). The nominal wall stress there gives S<sub>y</sub> = 2.3. The other peaks sit at internal corners that the CAD leaves sharp (MB6 slot, bridge roots, flange–neck corner), so the real filleted parts will be lower.</p></div>
+</section>
+
+<section class="sheet" id="dfma">
+  <h2><span class="num">20</span>Design for manufacture and assembly</h2>
+  <h3>Materials and process routes</h3>
+  <div class="tbl"><table>
+    <tr><th>Family</th><th>Material and condition</th><th>Route</th><th>Basis</th></tr>
+    <tr><td>Suns and planets</td><td>18CrNiMo7-6, case-carburised 58–62 HRC</td><td>turn → hob → carburise → grind seats and bores → profile-grind (planets crowned \(C_\beta = 5\) µm)</td><td>D-007, D-025</td></tr>
+    <tr><td>Ring gears</td><td>42CrMo4 +QT 280–320 HB</td><td>forged ring → turn → shape the teeth after tempering → drill → ream dowels with the stack</td><td>D-008, D-026</td></tr>
+    <tr><td>Planet pins</td><td>100Cr6 through-hardened 60 HRC</td><td>bar → harden → centreless grind h6 → superfinish Ra 0.2</td><td>D-009</td></tr>
+    <tr><td>Carriers, output shaft</td><td>42CrMo4 +QT, \(R_e \ge 750\) MPa</td><td>bar → turn → mill the bridges → jig-bore the pins → grind the seats in one set-up</td><td>D-019, D-022, D-031</td></tr>
+    <tr><td>Housings</td><td>EN-GJS-500-7, as cast</td><td>sand cast → machine the seats and spigot in one set-up → paint</td><td>D-027</td></tr>
+    <tr><td>Thrust washers</td><td>51CrV4, 45–50 HRC</td><td>fine-blank from hardened strip → lap</td><td>D-023</td></tr>
+    <tr><td>Spacers, cover</td><td>C45 normalised</td><td>turn → grind the faces (cone spacer to the measured setting)</td><td>sec. 18</td></tr>
+  </table></div>
+  <p>The gearbox has 73 parts: 37 made (18 part numbers, 9.18 kg) and 36 purchased (1.15 kg, coupling included), 10.3 kg in all. The two GJS castings make up 4.3 kg of that.</p>
+  <h3>Manual assembly analysis (Boothroyd–Dewhurst)</h3>
+  <p>A part must exist on its own only if it moves relative to the parts already assembled, must be of a different material, or must be separate for assembly or service. The design efficiency compares the actual assembly time with an ideal 3 s for each necessary part:</p>
+  <div class="eq">\[ E_d=\frac{3\,N_{min}}{\sum N_i\,(t_{h,i}+t_{i,i})} \]</div>
+  <div class="tbl"><table>
+    <tr><th>Design</th><th class="n">Parts</th><th class="n">\(N_{min}\)</th><th class="n">Assembly time [s]</th><th class="n">\(E_d\)</th></tr>
+    <tr><td>Prototype, as drawn</td><td class="n">73</td><td class="n">34</td><td class="n">607</td><td class="n">16.8 %</td></tr>
+    <tr><td>Series variant (C1, C2, C3, C7)</td><td class="n">51</td><td class="n">32</td><td class="n">480</td><td class="n">20.0 %</td></tr>
+  </table></div>
+  <p>Fasteners, bearings and seals hold the efficiency down; a value around 20 % is typical for a bolted, serviceable gearbox. Seven candidate changes were evaluated:</p>
+  <div class="tbl"><table>
+    <tr><th>Id</th><th>Change</th><th class="n">Parts</th><th>Verdict</th></tr>
+    <tr><td>C1</td><td>One-piece carrier cages. The planets go in radially between the bridges: the 16 mm gap is wider than the 15 mm face, and the ~48 mm opening is wider than the 43.5 mm tip diameter. The pin bores are line-bored through both walls.</td><td class="n">−8</td><td>series</td></tr>
+    <tr><td>C2</td><td>Gas-nitrided cage thrust faces instead of 12 washers</td><td class="n">−12</td><td>series, after a wear test</td></tr>
+    <tr><td>C3</td><td>Interstage spacer made integral with ring 1. It removes one joint: \(f_Z\) 14 → 12 µm.</td><td class="n">−1</td><td>accepted</td></tr>
+    <tr><td>C4</td><td>Seal cover made integral with the housing</td><td class="n">−5</td><td>rejected: the Ø45 KM 6 nut cannot be reached through the Ø42 seal bore</td></tr>
+    <tr><td>C5</td><td>Ring 2 made integral with the output housing</td><td class="n">−1</td><td>rejected: D-026 / D-027</td></tr>
+    <tr><td>C6</td><td>6 tie bolts instead of 8</td><td class="n">−2</td><td>rejected: \(S_{slip}\) 2.01 → 1.51 &lt; 1.8</td></tr>
+    <tr><td>C7</td><td>Self-locking KMK 6 nut instead of KM 6 + MB 6</td><td class="n">−1</td><td>accepted</td></tr>
+  </table></div>
+  <div class="decision"><span class="id">D-033 · The prototype stays as drawn; the DFMA changes go to the series variant</span><p>C1, C2, C3 and C7 cut the part count by 30 % (73 → 51) and the manual assembly time by 21 % (607 → 480 s). Of these, C1 and C2 change the heat treatment and the machining strategy, and C2 needs a wear test. The prototype therefore keeps the bolted cages and floating washers (D-021, D-023), which are easier to make and inspect as single parts. The changes are recorded for a series release. Workbook: <code>Report/PG25_DFMA_Materials_Processes.xlsx</code>, generated by <code>Calculations/03_dfma_materials.py</code>.</p></div>
+</section>
+
+<section class="sheet" id="efficiency">
+  <h2><span class="num">21</span>Efficiency</h2>
+  <p>Mesh friction losses with Ohlendorf's loss factor, \(\mu = 0.05\), and the approach/recess split assumed equal:</p>
+  <div class="eq">\[ H_v=\frac{\pi(u\pm1)}{z_1\,u}\left(1-\varepsilon_\alpha+\varepsilon_1^2+\varepsilon_2^2\right) \qquad \eta_z = 1-\mu H_v \]</div>
+  <p>With the carrier held (basic efficiency \(\eta_0 = \eta_{sp}\,\eta_{pr}\), basic ratio \(i_0 = -z_r/z_s = -4\)) and the ring fixed in operation:</p>
+  <div class="eq">\[ \eta_{stage}=\frac{1-i_0\,\eta_0}{1-i_0}=\frac{1+4\,(0.9903\cdot0.9966)}{5}=0.9895 \]</div>
+  <div class="eq">\[ \eta_{tot}\approx(0.9895\cdot0.99)^2=0.96 \qquad T_{2N}\,\eta_{tot}=57.3\ \text{N·m} \qquad P_{loss}\approx 0.04\cdot 750=30\ \text{W} \]</div>
+  <p class="note">The 0.99 per stage covers bearings and seals. No-load grease churning at 3000 rpm is not modelled, so the requirements sheet's estimate of 0.95 per stage stays as the pessimistic bound for the thermal check.</p>
+</section>
+
+<section class="sheet" id="standards">
+  <h2><span class="num">22</span>Standards and tolerancing system</h2>
+  <div class="decision"><span class="id">D-012 · GD&amp;T to ISO GPS</span><p>ISO 1101 (geometrical tolerances), ISO 5459 (datums) and ISO 8015 (independency principle). This matches the rest of the project, which is already ISO: metric module ISO 54, fits ISO 286, gear accuracy ISO 1328 and screws ISO 4762. It is not mixed with ASME Y14.5.</p></div>
+  <div class="decision"><span class="id">D-013 · Gear accuracy ISO 1328 grade 6</span><p>The grade that matches ground flanks in a servo gearbox; it sets \(K_1 = 14.9\) in \(K_v\). Backlash and profile shift will be set with the tolerance analysis in step 8.</p></div>
+</section>
+
+<section class="sheet" id="assumptions">
+  <h2><span class="num">23</span>Assumptions and limits of the calculation</h2>
+  <ul class="plain">
+    <li>Sections 05, 06 and 09 use an assumed \(K_{H\beta} = 1.15\). Section 16 replaces it with ISO 6336-1 method C. For these lightly loaded, uncrowned flanks that gives \(K_{H\beta} = 2.77\) and a lowest \(S_H\) of 1.41 instead of 2.18. The 1.15 holds only together with the helix crowning set in D-025. Mesh stiffness \(c_\gamma = 20\) N/(mm·µm) is the ISO typical value for solid steel gears.</li>
+    <li>Planet thrust is taken as 10 % of the tangential force. Straight spur teeth make none in theory, so this covers misalignment and friction.</li>
+    <li>\(K_\gamma = 1.16\) comes from AGMA 6123, because ISO 6336 gives no tabulated value.</li>
+    <li>Ring bending is bounded with a rack; a real internal tooth has a thicker root.</li>
+    <li>Bearing ratings are the lowest found across manufacturers, so any supplier qualifies: HK1212 \(C_r = 6.27\) kN (INA lists 6.5), 32006 X \(C_r = 35.8\) kN (SKF lists 43.9, with the same \(e, Y, Y_0\)), 6201 \(C_r = 7.28\) kN.</li>
+    <li>Shaft fatigue uses estimated notch factors \(\beta\) and a Goodman line, not a full DIN 743 calculation; the 2.0 minimum covers that.</li>
+    <li>The 200 N input bearing load is an assumption for the coupling's restoring force.</li>
+    <li>FEA (section 19) is linear-elastic. The carrier joints are bonded and the ring is modelled without teeth. The SOLIDWORKS library gives EN-GJS-500-7 an elastic modulus of 120 GPa, against 169 GPa in EN 1563, so the housing deflections are overstated by about 40 %; the stresses in its statically determinate load path are not affected.</li>
+    <li>Housing joints: VDI 2230 table values for M6 / M8 preload (\(\mu_G = 0.12\)), \(\alpha_A = 1.6\), \(\mu_T = 0.15\) for dry machined steel and cast-iron faces, and \(p_G = 750\) MPa for EN-GJS-500-7. The SolidWorks library lists \(E = 120\) GPa for this grade; the calculation uses 169 GPa (EN 1563).</li>
+    <li>Catalogue parts are modelled as envelopes with the catalogue boundary dimensions: 32006 X 30 × 55 × 17 with a 13 mm cup, KM 6 Ø45 × 7 with 4 slots 5 × 2, and MB 6 Ø30 / Ø49 × 1. The 32006 X housing abutment (Da 47–49 mm) comes from a distributor listing of an equivalent bearing. The MB 6 groove bottom (M = 27.5 mm, groove 6 mm wide) must be checked against the supplier's drawing.</li>
+    <li>Motor interface, confirmed in the Yaskawa Sigma-7 200 V catalogue (SGM7J-08A): shaft S = Ø19 h6 × LR 40, spigot LB = Ø70 h7 × LE 3, flange LC 80 × LG 8, 4 × Ø7 on LA = Ø90, LL 97 mm, 2.2 kg without brake. With the 8 mm extra of a batteryless encoder or a holding brake, only the motor's own length changes; the interface does not.</li>
+    <li>The spline is modelled in CAD by its major diameter; the DIN 5480 callout goes on the drawing. 100Cr6 is not in the SolidWorks library, so the pins use a project material, 1.3505 (100Cr6) hardened 60 HRC: \(E = 210\) GPa, \(\nu = 0.30\), \(\rho = 7810\) kg/m³, \(R_{p0.2} = 1650\) MPa (the value used in the pin check), \(R_m = 2200\) MPa. Thermal properties are typical handbook values for bearing steel.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Next: remaining part drawings (step 8), FEA and validation (step 9).</span>
+  <span>Sources: ISO 6336-1/2/3/5/6, ISO 281, ISO 286, ISO 492, ISO 53, ISO 1328, EN 10083-3, EN 1563, VDI 2230, AGMA 6123; Yaskawa SGM7J catalogue; HK1212, 32006 X and 6201 datasheets from INA, SKF, NTN, FAG and Koyo.</span>
+</footer>
+
+</main>
+</body>
+</html>

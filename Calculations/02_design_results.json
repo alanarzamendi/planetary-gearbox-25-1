@@ -1,0 +1,977 @@
+{
+  "rating_T2N_max": {
+    "contact_sun_planet (S_H=1.2)": 197.70269817124014,
+    "contact_planet_ring (S_H=1.2)": 242.94595078535033,
+    "bending_planet (S_F=1.5)": 408.968685511329,
+    "planet_bearing (L10h=10000 h)": 90.42826573546496,
+    "contact, K_Hbeta method C, uncrowned (S_H=1.2)": 112.55502099576417,
+    "governing": "planet_bearing (L10h=10000 h)"
+  },
+  "material_comparison_SH_sun_stage2": {
+    "18CrNiMo7-6 case-hardened (58-62 HRC)": 2.182823342994366,
+    "42CrMo4 quenched and tempered (~300 HB)": 1.0674662459340356
+  },
+  "motor": {
+    "name": "Yaskawa SGM7J-08A",
+    "P_W": 750,
+    "n_rated": 3000,
+    "n_max": 6000,
+    "T_rated": 2.39,
+    "T_peak": 8.36
+  },
+  "i_stage": 5.0,
+  "i_total": 25.0,
+  "T2N": 59.75,
+  "T2B": 209.0,
+  "T2N_with_eta": 57.33788321320626,
+  "n_out": 120.0,
+  "geometry": {
+    "a_w": 33.75,
+    "z_min_undercut": 17.09726434082606,
+    "eps_sun_planet": 1.5797147822261597,
+    "eps_planet_ring": 1.944455323614273,
+    "d_sun": 27.0,
+    "d_planet": 40.5,
+    "d_ring": 108.0,
+    "ring_root_d": 111.75,
+    "planet_root_d": 36.75,
+    "assembly_check": 30.0
+  },
+  "factors": {
+    "ZH": 2.4945731713945873,
+    "ZE": 189.8,
+    "KHB": 1.15,
+    "KFB": 1.1157909237600296,
+    "K_A": 1.25,
+    "K_gamma": 1.16
+  },
+  "efficiency": {
+    "mu": 0.05,
+    "eta_sp": 0.9902838303850223,
+    "eta_pr": 0.9965602544623449,
+    "eta0": 0.9868775059984434,
+    "eta_stage_mesh": 0.9895020047987547,
+    "eta_stage": 0.9796069847507671,
+    "eta_total": 0.9596298445724897
+  },
+  "cases": {
+    "fatigue_rated": {
+      "stage1": {
+        "T_sun": 2.39,
+        "Ft_per_mesh": 68.45432098765431,
+        "v": 3.3929200658769765,
+        "Kv": 1.0855223897453379,
+        "N_sun": 4320000000.0,
+        "N_planet": 960000000.0,
+        "N_ring": 1080000000.0,
+        "n_sun": 3000,
+        "n_carrier": 600.0,
+        "n_sun_rel": 2400.0,
+        "n_planet_rel": 1600.0,
+        "contact": {
+          "sun-planet": {
+            "sigma_H": 281.9588420275481,
+            "sigma_HG_sun": 1299.4090795411553,
+            "S_H": 4.608506228062178,
+            "S_H_planet": 4.82610331729593
+          },
+          "planet-ring": {
+            "sigma_H": 129.92296068116738,
+            "S_H_ring": 5.2613533113620345,
+            "S_H_planet": 10.473610635993722
+          }
+        },
+        "bending": {
+          "sun": {
+            "YF": 1.7372514490656712,
+            "YS": 1.7597342610813764,
+            "sigma_F": 14.081850975606471,
+            "S_F": 61.38500356662721
+          },
+          "planet": {
+            "YF": 1.5542828041492096,
+            "YS": 1.857912298976721,
+            "sigma_F": 13.301641038183577,
+            "S_F": 46.23499791247153
+          },
+          "ring": {
+            "YF": 0.8944400227344823,
+            "YS": 2.709883206678688,
+            "sigma_F": 11.164821121720783,
+            "S_F": 50.070647930065896
+          }
+        }
+      },
+      "stage2": {
+        "T_sun": 11.950000000000001,
+        "Ft_per_mesh": 342.27160493827165,
+        "v": 0.6785840131753953,
+        "Kv": 1.0171044779490677,
+        "N_sun": 864000000.0,
+        "N_planet": 192000000.0,
+        "N_ring": 216000000.0,
+        "n_sun": 600.0,
+        "n_carrier": 120.0,
+        "n_sun_rel": 480.0,
+        "n_planet_rel": 320.0,
+        "contact": {
+          "sun-planet": {
+            "sigma_H": 610.2869886546785,
+            "sigma_HG_sun": 1332.14868476117,
+            "S_H": 2.182823342994366,
+            "S_H_planet": 2.285888410554616
+          },
+          "planet-ring": {
+            "sigma_H": 281.2122927624414,
+            "S_H_ring": 2.417248840840273,
+            "S_H_planet": 4.9608356049232
+          }
+        },
+        "bending": {
+          "sun": {
+            "YF": 1.7372514490656712,
+            "YS": 1.7597342610813764,
+            "sigma_F": 65.97152587732845,
+            "S_F": 13.532231030093671
+          },
+          "planet": {
+            "YF": 1.5542828041492096,
+            "YS": 1.857912298976721,
+            "sigma_F": 62.31635013618434,
+            "S_F": 10.192435237840618
+          },
+          "ring": {
+            "YF": 0.8944400227344823,
+            "YS": 2.709883206678688,
+            "sigma_F": 52.30564411051253,
+            "S_F": 11.037998472716582
+          }
+        }
+      }
+    },
+    "static_peak": {
+      "stage1": {
+        "T_sun": 8.36,
+        "Ft_per_mesh": 239.4469135802469,
+        "v": 3.3929200658769765,
+        "Kv": 1.0855223897453379,
+        "N_sun": 4320000000.0,
+        "N_planet": 960000000.0,
+        "N_ring": 1080000000.0,
+        "n_sun": 3000,
+        "n_carrier": 600.0,
+        "n_sun_rel": 2400.0,
+        "n_planet_rel": 1600.0,
+        "contact": {
+          "sun-planet": {
+            "sigma_H": 471.6663570363169,
+            "sigma_HG_sun": 2383.7784892275386,
+            "S_H": 5.053950644701154,
+            "S_H_planet": 5.053950644701154
+          },
+          "planet-ring": {
+            "sigma_H": 217.3377118418993,
+            "S_H_ring": 5.529691266080135,
+            "S_H_planet": 10.968084963375341
+          }
+        },
+        "bending": {
+          "sun": {
+            "YF": 1.7372514490656712,
+            "YS": 1.7597342610813764,
+            "sigma_F": 39.40561478027452,
+            "S_F": 63.442735608617845
+          },
+          "planet": {
+            "YF": 1.5542828041492096,
+            "YS": 1.857912298976721,
+            "sigma_F": 37.222332746180655,
+            "S_F": 47.014785772113264
+          },
+          "ring": {
+            "YF": 0.8944400227344823,
+            "YS": 2.709883206678688,
+            "sigma_F": 31.242813247727447,
+            "S_F": 50.33157505796573
+          }
+        }
+      },
+      "stage2": {
+        "T_sun": 41.8,
+        "Ft_per_mesh": 1197.2345679012346,
+        "v": 0.6785840131753953,
+        "Kv": 1.0171044779490677,
+        "N_sun": 864000000.0,
+        "N_planet": 192000000.0,
+        "N_ring": 216000000.0,
+        "n_sun": 600.0,
+        "n_carrier": 120.0,
+        "n_sun_rel": 480.0,
+        "n_planet_rel": 320.0,
+        "contact": {
+          "sun-planet": {
+            "sigma_H": 1020.9002087520716,
+            "sigma_HG_sun": 2326.12319819665,
+            "S_H": 2.278502030125018,
+            "S_H_planet": 2.278502030125018
+          },
+          "planet-ring": {
+            "sigma_H": 470.417514582259,
+            "S_H_ring": 2.4181586537056416,
+            "S_H_planet": 4.944805680252569
+          }
+        },
+        "bending": {
+          "sun": {
+            "YF": 1.7372514490656712,
+            "YS": 1.7597342610813764,
+            "sigma_F": 184.60985986090907,
+            "S_F": 13.542071923371696
+          },
+          "planet": {
+            "YF": 1.5542828041492096,
+            "YS": 1.857912298976721,
+            "sigma_F": 174.38148523464469,
+            "S_F": 10.035469061668046
+          },
+          "ring": {
+            "YF": 0.8944400227344823,
+            "YS": 2.709883206678688,
+            "sigma_F": 146.36826268247188,
+            "S_F": 10.74344923674709
+          }
+        }
+      }
+    }
+  },
+  "planet_bearing": {
+    "stage1": {
+      "Fr": 136.90864197530863,
+      "P": 171.1358024691358,
+      "L10_Mrev": 163338.62073443964,
+      "L10h": 1701443.965983746
+    },
+    "stage2": {
+      "Fr": 684.5432098765433,
+      "P": 855.6790123456791,
+      "L10_Mrev": 764.1680389803603,
+      "L10h": 39800.418696893765
+    },
+    "stage2_static": {
+      "Fr": 2394.4691358024693,
+      "S0": 3.0486924599901006
+    }
+  },
+  "planet_pin_stage1_peak": {
+    "span": 20.0,
+    "Fr": 478.8938271604938,
+    "M_Nmm": 2394.469135802469,
+    "sigma_b": 14.11450366829414,
+    "tau": 2.8229007336588277,
+    "sigma_vm": 14.937386634166076,
+    "S": 110.46108937328957,
+    "deflection_um": 0.3733995679442894
+  },
+  "planet_pin_stage2_peak": {
+    "span": 22.0,
+    "Fr": 2394.4691358024693,
+    "M_Nmm": 13169.580246913582,
+    "sigma_b": 77.62977017561778,
+    "tau": 14.114503668294141,
+    "sigma_vm": 81.38819852365637,
+    "S": 20.27320950617195,
+    "deflection_um": 2.4849741246692463
+  },
+  "planets": {
+    "pin_span": {
+      "stage1": 20.0,
+      "stage2": 22.0
+    },
+    "washer": {
+      "d": 12.2,
+      "D": 24.0,
+      "t": 0.4,
+      "mat": "1.8159 (51CrV4) hardened and tempered 45-50 HRC"
+    },
+    "hk_cup_recess": 1.5,
+    "thrust_washer": {
+      "end_float_total": 0.19999999999999996,
+      "contact_annulus_planet": [
+        9.5,
+        12.0
+      ],
+      "A_planet_mm2": 168.86060513045138,
+      "washer_to_sun_tip": 6.75,
+      "washer_inside_planet_root": true,
+      "stage1_peak": {
+        "Fa": 23.94469135802469,
+        "p": 0.14180152522565276,
+        "v_mean": 3.6023595761162963,
+        "pv": 0.5108200823045268
+      },
+      "stage2_peak": {
+        "Fa": 119.72345679012346,
+        "p": 0.7090076261282638,
+        "v_mean": 0.7204719152232592,
+        "pv": 0.5108200823045267
+      }
+    },
+    "press_fit_R7": {
+      "D_eff_ring": 28.5,
+      "min": {
+        "interference_um": 5,
+        "p": 7.198753462603878,
+        "hub_vm": 15.234627196613099,
+        "push_out_stage1": 108.55464476697807,
+        "push_out_stage2": 162.8319671504671
+      },
+      "mean": {
+        "interference_um": 19.5,
+        "p": 111.5806786703601,
+        "hub_vm": 236.13672154750304,
+        "push_out_stage1": 1682.59699388816,
+        "push_out_stage2": 2523.89549083224
+      },
+      "max": {
+        "interference_um": 34,
+        "p": 215.9626038781163,
+        "hub_vm": 457.03881589839295,
+        "push_out_stage1": 3256.6393430093412,
+        "push_out_stage2": 4884.959014514012
+      },
+      "S_hub_max": 1.6409984752077098
+    },
+    "misalignment_M6": {
+      "stage1": {
+        "f_Hbeta": 7.337392195892534,
+        "pin_tilt_over_face": 2.625,
+        "Fm_per_b": 6.192391508909413,
+        "no_modification": {
+          "F_beta_x": 7.79281394852621,
+          "KHB": 6.030688157436705,
+          "S_H_min": 2.012452613218354,
+          "S_F_min": 12.612497606453832
+        },
+        "helix_crowning": {
+          "F_beta_x": 3.896406974263105,
+          "KHB": 4.2643404913449,
+          "S_H_min": 2.3932229662450855,
+          "S_F_min": 16.549856625133987
+        }
+      },
+      "stage2": {
+        "f_Hbeta": 7.337392195892534,
+        "pin_tilt_over_face": 2.3863636363636362,
+        "Fm_per_b": 29.010498504794192,
+        "no_modification": {
+          "F_beta_x": 7.715701889089763,
+          "KHB": 2.7724201415455845,
+          "S_H_min": 1.4058467685560943,
+          "S_F_min": 5.113173610472156
+        },
+        "helix_crowning": {
+          "F_beta_x": 3.8578509445448814,
+          "KHB": 1.960789180155955,
+          "S_H_min": 1.6716758127219231,
+          "S_F_min": 6.708348097045753
+        }
+      }
+    },
+    "misalignment_K7": {
+      "stage1": {
+        "f_Hbeta": 7.337392195892534,
+        "pin_tilt_over_face": 6.375,
+        "Fm_per_b": 6.192391508909413,
+        "no_modification": {
+          "F_beta_x": 9.719976812541512,
+          "KHB": 6.735228474777086,
+          "S_H_min": 1.904289323936,
+          "S_F_min": 11.566018463647856
+        },
+        "helix_crowning": {
+          "F_beta_x": 4.859988406270756,
+          "KHB": 4.762525727355605,
+          "S_H_min": 2.2645944130484126,
+          "S_F_min": 15.17668849340964
+        }
+      },
+      "stage2": {
+        "f_Hbeta": 7.337392195892534,
+        "pin_tilt_over_face": 5.795454545454545,
+        "Fm_per_b": 29.010498504794192,
+        "no_modification": {
+          "F_beta_x": 9.350113241280793,
+          "KHB": 3.0519664907308357,
+          "S_H_min": 1.3399161730256224,
+          "S_F_min": 4.742249957625543
+        },
+        "helix_crowning": {
+          "F_beta_x": 4.6750566206403965,
+          "KHB": 2.1580662015498846,
+          "S_H_min": 1.5934378464692873,
+          "S_F_min": 6.222681607415356
+        }
+      }
+    }
+  },
+  "materials": {
+    "sun_planet": "18CrNiMo7-6 case-hardened (58-62 HRC)",
+    "ring": "42CrMo4 quenched and tempered (~300 HB)",
+    "values": {
+      "18CrNiMo7-6 case-hardened (58-62 HRC)": {
+        "sHlim": 1500,
+        "sFlim": 500,
+        "kind": "case"
+      },
+      "42CrMo4 quenched and tempered (~300 HB)": {
+        "sHlim": 766.9,
+        "sFlim": 314.5,
+        "kind": "qt"
+      }
+    },
+    "pin": {
+      "name": "100Cr6 hardened 60 HRC (needle raceway)",
+      "Rp02": 1650
+    },
+    "shaft": {
+      "name": "42CrMo4 +QT (16 < d <= 40 mm, EN 10083-3)",
+      "Rm": 1000,
+      "Re": 750
+    },
+    "thrust_washer": "1.8159 (51CrV4) hardened and tempered 45-50 HRC"
+  },
+  "output": {
+    "bearing": {
+      "name": "32006 X (tapered roller, O arrangement)",
+      "d": 30,
+      "D": 55,
+      "T": 17,
+      "Cr": 35800,
+      "C0r": 44000,
+      "e": 0.43,
+      "Y": 1.4,
+      "Y0": 0.8
+    },
+    "pressure_centre_offset": 6.091666666666666,
+    "L_span": 39.18333333333333,
+    "x_overhang": 37.40833333333333,
+    "F2r_limits": {
+      "bearing life L10h >= 10000 h": 3855.39059714342,
+      "bearing static S0 >= 2": 11254.923294527252,
+      "shaft fatigue S >= 2.0": 7179.78374555688,
+      "shaft static S >= 1.5": 33422.368344414725
+    },
+    "F2r_rated": 3000.0,
+    "F2a_rated": 1500.0,
+    "M2k_Nm": 171.0,
+    "rated_check": {
+      "F2r": 3000.0,
+      "F2a": 1500.0,
+      "R_front": 5864.100382815824,
+      "R_rear": 2864.100382815823,
+      "L10h_min": 23075.817578052644,
+      "S0_min": 7.503282196351503,
+      "bearings": {
+        "axial_load_on_front/front": {
+          "Fr": 5864.100382815824,
+          "Fa": 2522.892993862794,
+          "P": 7347.112930667801,
+          "L10h": 27240.926512176615,
+          "P0": 5864.100382815824,
+          "S0": 7.503282196351503
+        },
+        "axial_load_on_front/rear": {
+          "Fr": 2864.100382815823,
+          "Fa": 1022.892993862794,
+          "P": 3580.125478519779,
+          "L10h": 299192.0833781726,
+          "P0": 2864.100382815823,
+          "S0": 15.362590034900126
+        },
+        "axial_load_on_rear/front": {
+          "Fr": 5864.100382815824,
+          "Fa": 2094.321565291366,
+          "P": 7330.12547851978,
+          "L10h": 27451.93080692966,
+          "P0": 5864.100382815824,
+          "S0": 7.503282196351503
+        },
+        "axial_load_on_rear/rear": {
+          "Fr": 2864.100382815823,
+          "Fa": 3594.321565291366,
+          "P": 7722.112930667801,
+          "L10h": 23075.817578052644,
+          "P0": 4307.507443641004,
+          "S0": 10.214724077831923
+        }
+      },
+      "shaft": {
+        "extension shoulder, d25 (fillet r1)": {
+          "M_Nmm": 60000.0,
+          "sigma_a": 70.40505386567555,
+          "tau_m": 34.082076133470835,
+          "S_fatigue": 4.112240720433021,
+          "tau_peak": 68.12340860151015,
+          "S_static": 5.985522113730191
+        },
+        "front bearing seat, d30": {
+          "M_Nmm": 112225.0,
+          "sigma_a": 67.74011634152468,
+          "tau_m": 18.31460771061181,
+          "S_fatigue": 4.787183961948381,
+          "tau_peak": 39.42326886661467,
+          "S_static": 9.204538504378622
+        }
+      },
+      "S_fat_min": 4.112240720433021,
+      "S_st_min": 5.985522113730191
+    },
+    "sigma_N": 382.5
+  },
+  "input": {
+    "bearing": {
+      "name": "6201-2Z (12x32x10)",
+      "Cr": 7280,
+      "C0r": 3100
+    },
+    "F_radial_assumed": 200.0,
+    "L10h": 137183.41404444448,
+    "tau_peak": 24.63954304163417,
+    "S_static": 17.57389336159948,
+    "seal_surface_speed": 3.7699111843077517,
+    "coupling_rated_torque_min": 12.54,
+    "sun_root_over_shaft": 1.9375
+  },
+  "fits": [
+    {
+      "joint": "32006 X cone on output shaft",
+      "nominal": 30,
+      "hole": "bearing bore",
+      "hole_dev": [
+        0,
+        -10
+      ],
+      "shaft": "k6",
+      "shaft_dev": [
+        15,
+        2
+      ],
+      "reason": "rotating inner-ring load",
+      "range_um": {
+        "max_clearance": -2,
+        "max_interference": 25
+      }
+    },
+    {
+      "joint": "32006 X cup in housing",
+      "nominal": 55,
+      "hole": "J7",
+      "hole_dev": [
+        18,
+        -12
+      ],
+      "shaft": "bearing OD",
+      "shaft_dev": [
+        0,
+        -13
+      ],
+      "reason": "stationary outer-ring load, steel housing",
+      "range_um": {
+        "max_clearance": 31,
+        "max_interference": 12
+      }
+    },
+    {
+      "joint": "HK1212 cup in planet bore",
+      "nominal": 18,
+      "hole": "N6",
+      "hole_dev": [
+        -9,
+        -20
+      ],
+      "shaft": "bearing OD",
+      "shaft_dev": null,
+      "reason": "drawn cup: the press fit rounds the cup",
+      "range_um": null
+    },
+    {
+      "joint": "Planet pin as raceway",
+      "nominal": 12,
+      "hole": "needle set",
+      "hole_dev": null,
+      "shaft": "h6",
+      "shaft_dev": [
+        0,
+        -11
+      ],
+      "reason": "running clearance set by the N6 bore",
+      "range_um": null
+    },
+    {
+      "joint": "Planet pin in bridge plate",
+      "nominal": 12,
+      "hole": "R7",
+      "hole_dev": [
+        -16,
+        -34
+      ],
+      "shaft": "h6",
+      "shaft_dev": [
+        0,
+        -11
+      ],
+      "reason": "press fit: holds the pin axially, pin does not turn",
+      "range_um": {
+        "max_clearance": -5,
+        "max_interference": 34
+      }
+    },
+    {
+      "joint": "Planet pin in bolted plate",
+      "nominal": 12,
+      "hole": "M6",
+      "hole_dev": [
+        -4,
+        -15
+      ],
+      "shaft": "h6",
+      "shaft_dev": [
+        0,
+        -11
+      ],
+      "reason": "pin is the dowel of the bolted plate; small play keeps the pin parallel",
+      "range_um": {
+        "max_clearance": 7,
+        "max_interference": 15
+      }
+    },
+    {
+      "joint": "6201 on input shaft",
+      "nominal": 12,
+      "hole": "bearing bore",
+      "hole_dev": [
+        0,
+        -8
+      ],
+      "shaft": "j6",
+      "shaft_dev": [
+        8,
+        -3
+      ],
+      "reason": "rotating inner ring, light load",
+      "range_um": {
+        "max_clearance": 3,
+        "max_interference": 16
+      }
+    },
+    {
+      "joint": "6201 in input housing",
+      "nominal": 32,
+      "hole": "J7",
+      "hole_dev": [
+        14,
+        -11
+      ],
+      "shaft": "bearing OD",
+      "shaft_dev": [
+        0,
+        -11
+      ],
+      "reason": "stationary outer ring, one bearing floats axially",
+      "range_um": {
+        "max_clearance": 25,
+        "max_interference": 11
+      }
+    },
+    {
+      "joint": "Output shaft extension",
+      "nominal": 25,
+      "hole": "customer hub",
+      "hole_dev": null,
+      "shaft": "h6",
+      "shaft_dev": [
+        0,
+        -13
+      ],
+      "reason": "clamp / shrink-disc hub, keyless",
+      "range_um": null
+    }
+  ],
+  "carriers": {
+    "interstage": {
+      "spline": "DIN 5480 W 16 x 1 x 14",
+      "engagement_L": 8.0,
+      "p_rated_KA": 28.226568405139833,
+      "p_peak": 78.98715041572184,
+      "S_p_fatigue": 3.542761506276151,
+      "S_p_static": 2.532057416267943,
+      "d_root": 13.8,
+      "tau_peak_root": 81.00449754790552,
+      "S_static_stub": 5.701908280815492
+    },
+    "bridge_to_planet_tip_clearance": 3.7260461261702034,
+    "bridge_radial_extent": [
+      24.75,
+      42.75
+    ],
+    "sun_tip_radius": 15.0,
+    "ring_tip_radius": 52.5,
+    "stage1_bridge_peak": {
+      "V": 206.41975308641975,
+      "M_Nmm": 1651.358024691358,
+      "sigma": 5.504526748971193,
+      "tau": 1.7201646090534979
+    },
+    "stage2_bridge_peak": {
+      "V": 1032.0987654320988,
+      "M_Nmm": 8256.79012345679,
+      "sigma": 27.52263374485597,
+      "tau": 8.600823045267491
+    }
+  },
+  "housing": {
+    "concept": "ring gears as housing sections, clamped by tie bolts",
+    "od": 140.0,
+    "ring_od_old": 126.5,
+    "materials": {
+      "input_housing": "0.7050 (EN-GJS-500-7)",
+      "output_housing": "0.7050 (EN-GJS-500-7)",
+      "spacer": "1.0503 (C45)",
+      "seal_cover": "1.0503 (C45)"
+    },
+    "tie_bolts": {
+      "bolt": "ISO 4762 M6x70 - 8.8",
+      "n": 8,
+      "pcd": 128.0,
+      "l_K": 59.5,
+      "delta_S": 1.329574654701747e-05,
+      "delta_P": 4.609658896312781e-07,
+      "load_factor_Phi": 0.03350843391937422,
+      "f_Z_um": 14.0,
+      "F_Z": 1017.6850075533395,
+      "F_V_min": 5482.314992446661,
+      "clamp_total": 43858.519939573285,
+      "T_slip_per_joint": 421.0417914199035,
+      "joints": {
+        "input housing | ring 1": {
+          "T_peak": 8.36,
+          "S_slip": 50.36385064831382
+        },
+        "ring 1 | spacer | ring 2": {
+          "T_peak": 41.8,
+          "S_slip": 10.072770129662764
+        },
+        "ring 2 | output housing": {
+          "T_peak": 209.0,
+          "S_slip": 2.0145540259325525
+        }
+      },
+      "head_pressure": 298.0724841583834,
+      "S_head": 2.5161665026466546,
+      "thread_engagement": 10.5,
+      "ring_rim_at_hole": 4.825000000000003,
+      "ring_rim_min": 4.05,
+      "ring_outer_ligament": 2.700000000000003,
+      "tightening_torque": 10.1
+    },
+    "mounting": {
+      "bolts": "ISO 4762 M8 - 10.9",
+      "n": 4,
+      "F_V_min": 15750.0,
+      "lever": 77.0,
+      "M_tilt": 231.0,
+      "F_A_max_per_bolt": 2179.6875,
+      "F_t_per_bolt_peak": 816.40625,
+      "S_slip": 2.4933014354066985,
+      "no_separation": true,
+      "neck_sigma_b": 5.917618132819222,
+      "neck_tau": 2.677017726751553,
+      "thread_engagement_over_d": 1.4375
+    },
+    "heat": {
+      "P_in": 750.8406442079606,
+      "P_loss": 40.311553507967346,
+      "A_m2": 0.09619870864557306,
+      "alpha": 15.0,
+      "dT": 27.936309523993064,
+      "P_loss_pessimistic": 73.20696281027618,
+      "dT_pessimistic": 50.73315698376933
+    },
+    "cage_screws": {
+      "screw": "M5 - 8.8 (ISO 4762 stage 1, DIN 7984 stage 2)",
+      "F_V_min": 3881.25,
+      "friction_capacity": 582.1875,
+      "stage1": {
+        "V_peak": 206.41975308641975,
+        "S_slip_friction_only": 2.8204059509569377,
+        "V_rated_KA": 73.76543209876543,
+        "S_slip_rated": 7.892416317991632,
+        "pin_shear_if_slip": 1.8251513364173457
+      },
+      "stage2": {
+        "V_peak": 1032.0987654320988,
+        "S_slip_friction_only": 0.5640811901913875,
+        "V_rated_KA": 368.82716049382725,
+        "S_slip_rated": 1.578483263598326,
+        "pin_shear_if_slip": 9.12575668208673
+      }
+    },
+    "input_side": {
+      "shaft_end": 75.0,
+      "coupling_gearbox_hub": [
+        55.0,
+        75.0
+      ],
+      "motor_shaft_LR": 40.0,
+      "motor_face": 125.0,
+      "motor_spigot": "d70 h7",
+      "motor_pcd": 90.0,
+      "motor_bolts": "4 x M6"
+    },
+    "L_overall": 171.0,
+    "ring_torque_peak": {
+      "stage1": 33.44,
+      "stage2": 167.2
+    },
+    "al_alternative": {
+      "radial_slip_at_pcd_60K": 0.04416
+    }
+  },
+  "step8": {
+    "backlash": {
+      "f_pt": {
+        "sun": 7.175066659962218,
+        "planet": 7.373250352560273,
+        "ring": 8.056882967364162
+      },
+      "f_Hbeta": 7.337392195892534,
+      "allowances_um": {
+        "sun": [
+          -15,
+          -35
+        ],
+        "planet": [
+          -20,
+          -40
+        ],
+        "ring": [
+          -15,
+          -35
+        ]
+      },
+      "j_thermal": 2.6549313625655033,
+      "j_lube": 10.0,
+      "f_a_pos": 8.0,
+      "sun-planet": {
+        "J_n": 10.883103578902928,
+        "required_from_allowances": 29.010357234679127,
+        "from_allowances_min": 32.88924172750679,
+        "jn_min_running": 13.878884492827666,
+        "jn_max": 75.94926885215382,
+        "jn_mean": 44.914076672490744
+      },
+      "planet-ring": {
+        "J_n": 11.483628567836522,
+        "required_from_allowances": 29.610882223612723,
+        "from_allowances_min": 32.88924172750679,
+        "jn_min_running": 13.27835950389407,
+        "jn_max": 75.94926885215382,
+        "jn_mean": 44.613814178023944
+      },
+      "stage_carrier_play_arcmin": [
+        1.4718718107514266,
+        8.232616526490016
+      ],
+      "output_backlash_arcmin": [
+        1.7662461729017118,
+        9.879139831788018
+      ],
+      "output_backlash_rss_arcmin": [
+        4.56119370024458,
+        8.884215892158739
+      ]
+    },
+    "inspection": {
+      "sun": {
+        "z": 18,
+        "d": 27.0,
+        "d_b": 25.37170076121953,
+        "ball": 2.5,
+        "k": 2,
+        "W_k": 7.0204452942228945,
+        "W_k_upper": 7.006349904911106,
+        "W_k_lower": 6.987556052495388,
+        "M_nominal": 30.261746677834726,
+        "M_upper": 30.22691095333469,
+        "M_lower": 30.180109382963565
+      },
+      "planet": {
+        "z": 27,
+        "d": 40.5,
+        "d_b": 38.05755114182929,
+        "ball": 2.5,
+        "k": 3,
+        "W_k": 11.637717229119422,
+        "W_k_upper": 11.618923376703703,
+        "W_k_lower": 11.600129524287986,
+        "M_nominal": 43.712522097836896,
+        "M_upper": 43.66393697132375,
+        "M_lower": 43.615019768732694
+      },
+      "ring": {
+        "z": 72,
+        "d": 108.0,
+        "d_b": 101.48680304487812,
+        "ball": 2.5,
+        "M_nominal": 104.63730305303834,
+        "M_upper": 104.68120831182594,
+        "M_lower": 104.73950741850597
+      }
+    },
+    "crowning": {
+      "F_bx_unmodified": 7.715701889089763,
+      "C_b": 5.0,
+      "C_b_tol": [
+        3.0,
+        7.0
+      ],
+      "C_b_min_to_keep_contact_central": 1.9289254722724407,
+      "mesh_deflection_rated": 1.7064999120467172,
+      "contact_width_fraction_rated": 0.5842088517040318,
+      "mesh_deflection_peak": 4.6950375211813125,
+      "contact_width_fraction_peak": 0.9690239956968364
+    },
+    "stacks": {
+      "planet_end_float": {
+        "nominal": 0.19999999999999996,
+        "min": 0.14000000000000035,
+        "max": 0.2869999999999988,
+        "spec": "bridge 16 +/-0.02, planet width 15 h8, washer 0.4 +/-0.02"
+      },
+      "input_axial_play": {
+        "min": 0.05000000000000071,
+        "max": 0.4399999999999977,
+        "spec": "shaft 30 +0.10/0, collar 10 -0.05/-0.10, 6201 B 10 0/-0.12"
+      },
+      "output_bearing_setting": {
+        "target_axial_um": [
+          0,
+          10
+        ],
+        "method": "measure cups on the collar, grind the cone spacer"
+      },
+      "ring2_planet_axial_offset": {
+        "contributors_mm": {
+          "output housing collar face to ring seat": 0.03,
+          "ring 2 width": 0.02,
+          "carrier shoulder to pin mid-plane": 0.05,
+          "bearing stand-out after setting": 0.05,
+          "planet float (half)": 0.15
+        },
+        "worst_case": 0.3,
+        "rss": 0.16970562748477142,
+        "b_eff_min": 14.7
+      }
+    }
+  }
+}
